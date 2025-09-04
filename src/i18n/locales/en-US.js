@@ -512,8 +512,9 @@ export default {
                 deposit: 'Deposit'
             },
             discount: {
-                relative: 'Relative discount approx',
-                savings: 'saves you'
+                relative: 'Better deal than other',
+                savings: 'saves you',
+                explain: 'Traffic never expires, as low as',
             }
         },
         stats: {

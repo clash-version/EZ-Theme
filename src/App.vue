@@ -5,7 +5,7 @@
       <!-- 网站名称 -->
       <div class="site-logo">
         <img v-if="siteConfig.showLogo" src="/images/logo.png" alt="Logo" class="site-logo-img" />
-        {{ siteConfig.siteName }}
+        {{ siteConfig.showText ? siteConfig.siteName : '' }}
       </div>
       
       <!-- 顶部导航栏 - 保持不变 -->

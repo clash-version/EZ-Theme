@@ -491,28 +491,29 @@ export default {
                 sold_out: '已售罄'
             },
             periods: {
-                month: ' / 月付',
-                quarter: ' / 季度',
+                month: ' / 月',
+                quarter: ' / 季',
                 half_year: ' / 半年',
-                year: ' / 一年',
+                year: ' / 年',
                 two_year: ' / 两年',
                 three_year: ' / 三年',
                 onetime: ' / 一次性'
             },
             price_options: {
                 month: '月付',
-                quarter: '季度',
-                half_year: '半年',
-                year: '一年',
-                two_year: '两年',
-                three_year: '三年',
+                quarter: '季付',
+                half_year: '半年付',
+                year: '年付',
+                two_year: '两年付',
+                three_year: '三年付',
                 onetime: '一次性',
                 reset_price: '重置流量包',
                 deposit: '充值'
             },
             discount: {
-                relative: '相对折扣大约',
-                savings: '为您节省'
+                relative: '更划算',
+                savings: '为您节省',
+                explain: '流量永不过期，低至',
             }
         },
         stats: {

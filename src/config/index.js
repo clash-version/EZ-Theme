@@ -6,7 +6,7 @@
 
 export const config  = {
     // 面板类型配置 - 请选择您使用的面板类型
-    PANEL_TYPE: 'Xiao-V2board', // 可选值: 'V2board', 'Xiao-V2board' 或 'Xboard'
+    PANEL_TYPE: 'Xboard', // 可选值: 'V2board', 'Xiao-V2board' 或 'Xboard'
     // 说明:
     // 1. V2board: 标准V2board面板，使用默认请求格式
     // 2. Xiao-V2board: Xiao修改版面板，使用特殊格式的请求参数
@@ -29,7 +29,7 @@ export const config  = {
         // 支持字符串形式(单个API地址)或数组形式(多个备选API地址)
         // 多个地址时，会按顺序检测可用性，并使用第一个可用的地址
         staticBaseUrl: [
-            'https://w5x8mu2a9943r.ezdemo.xyz/api/v1',
+            'https://api.kl8s.com/api/v1',
             'https://skhsn6q4pnv95.ezdemo.xyz/api/v1',
             'https://gy1v06omopzc8.ezdemo.xyz/api/v1'
         ],
@@ -49,25 +49,27 @@ export const config  = {
 
     // 是否启用中间件代理API请求
     // 设置为true时，所有API请求将通过中间件转发
-    API_MIDDLEWARE_ENABLED: true,
+    API_MIDDLEWARE_ENABLED: false,
 
     // 中间件服务器URL (不含路径)
-    API_MIDDLEWARE_URL: 'https://tko16g9ugx8bc.ezdemo.xyz',
+    API_MIDDLEWARE_URL: 'https://user.kl8s.com',
 
     // 中间件路由前缀 (与中间件服务器配置保持一致)
-    API_MIDDLEWARE_PATH: '/ez/ez',
+    API_MIDDLEWARE_PATH: '/billing',
 
     //=======================================================
 
     // ====================  网站基础配置  ====================
     SITE_CONFIG: {
-        siteName: 'EZ THEME',
-        siteDescription: 'EZ UI',
+        siteName: 'PolarisNet',
+        siteDescription: 'PolarisNet',
         // copyright会自动使用当前年份
-        copyright: `© ${new Date().getFullYear()} EZ THEME. All Rights Reserved.`,
+        copyright: `© ${new Date().getFullYear()} PolarisNet. All Rights Reserved.`,
 
         // 是否显示标题中的网站Logo (true=显示, false=隐藏)
         showLogo: true,
+
+        showText: true,
 
         // Landing页面多语言标语
         landingText: {
@@ -90,13 +92,13 @@ export const config  = {
     // 默认语言和主题配置
     DEFAULT_CONFIG: {
         // 默认语言 ('zh-CN' 或 'en-US')
-        defaultLanguage: 'zh-CN',
+        defaultLanguage: 'en-US',
 
         // 默认主题 ('light' 或 'dark')
         defaultTheme: 'light',
 
         // 主题色 (16进制颜色值)
-        primaryColor: '#355cc2',
+        primaryColor: '#06b97eff',
 
         // 是否启用落地页 (true=启用, false=禁用)
         enableLandingPage: true // 默认启用
@@ -138,7 +140,7 @@ export const config  = {
     // 认证页面布局配置
     AUTH_LAYOUT_CONFIG: {
         // 布局类型: 'center' 为居中卡片布局, 'split' 为左右分栏布局
-        layoutType: 'center',
+        layoutType: 'split',
 
         // 左右分栏布局配置 (仅当 layoutType 为 'split' 时生效)
         splitLayout: {
@@ -150,7 +152,7 @@ export const config  = {
                 // 左上角网站名称配置
                 siteName: {
                     // 是否显示网站名称
-                    show: true,
+                    show: false,
                     // 文字颜色 (white或black)
                     color: 'white'
                 },
@@ -172,26 +174,26 @@ export const config  = {
         showHotSaleBadge: false,
 
         // 是否显示套餐特性卡片 (true=显示, false=隐藏)
-        showPlanFeatureCards: true, // 默认显示
+        showPlanFeatureCards: false, // 默认显示
 
         // 是否自动选择周期最大的标签，设为false则不会自动选择
         autoSelectMaxPeriod: false, // 默认关闭
 
         // 是否隐藏周期选择标签 (true=隐藏, false=显示)
-        hidePeriodTabs: false, // 默认显示周期选择标签
+        hidePeriodTabs: true, // 默认显示周期选择标签
 
         // 库存紧张的阈值（当库存数量小于等于此值且大于0时显示库存紧张）
-        lowStockThreshold: 5,
+        lowStockThreshold: 15,
 
         // 是否启用周期折扣计算显示 (true=启用, false=禁用)
         enableDiscountCalculation: true, // 默认启用
 
         // 价格周期的显示顺序（从大到小）
         periodOrder: [
-            'three_year_price', // 三年
-            'two_year_price',   // 两年
+            // 'three_year_price', // 三年
+            // 'two_year_price',   // 两年
             'year_price',       // 一年
-            'half_year_price',  // 半年
+            // 'half_year_price',  // 半年
             'quarter_price',    // 季度
             'month_price',      // 月付
             'onetime_price'     // 一次性
@@ -200,7 +202,7 @@ export const config  = {
         // 商店弹窗配置
         popup: {
             // 是否启用弹窗
-            enabled: true,
+            enabled: false,
 
             // 弹窗标题
             title: "用户须知",
@@ -209,7 +211,7 @@ export const config  = {
             content: "<p><strong>常规套餐默认每月订单日重置流量，您当月未用使用完的流量，不会累积到下个月</strong></p>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
-            cooldownHours: 0,
+            cooldownHours: 1,
 
             // 等待时间（秒），用户需要等待多少秒才能关闭弹窗，设为0表示无需等待
             closeWaitSeconds: 0
@@ -219,7 +221,7 @@ export const config  = {
         // 下单前二次确认
         confirmOrder: true,
         // 下单前二次确认内容
-        confirmOrderContent: "<p><strong style='color: red'>无法提供相关教程和使用说明。</strong></p><p><strong style='color: red'>不会使用请勿购买，没有退款政策</strong></p>",
+        confirmOrderContent: "<p><strong style='color: red'>无法提供技术支持，自行阅读相关<a target='_blank' href='https://clash.download'>教程和使用说明</a>。</strong></p><p><strong style='color: red'>不会使用请勿购买，没有退款政策</strong></p>",
 
     },
     // 仪表盘页面配置
@@ -228,7 +230,7 @@ export const config  = {
         showUserEmail: false,
 
         // 是否为导入订阅按钮添加高光效果和填充底色 (true=添加效果, false=不添加效果)
-        importButtonHighlightBtnbgcolor: false,
+        importButtonHighlightBtnbgcolor: true,
 
         // ===============================
 
@@ -250,7 +252,7 @@ export const config  = {
         renewPlanDisplayMode: 'always',
 
         // 即将过期的天数阈值 (1-30)，当剩余天数小于等于此值时触发即将过期警告
-        expiringThreshold: 7,
+        expiringThreshold: 3,
 
         // ===============================
 
@@ -330,7 +332,7 @@ export const config  = {
     // 用户中心页面配置
     PROFILE_CONFIG: {
         // 是否显示礼品卡兑换栏目 (true=显示, false=隐藏)
-        showGiftCardRedeem: false, // 只有Xiao-V2board支持礼品卡兑换
+        showGiftCardRedeem: true, // 只有Xiao-V2board支持礼品卡兑换
 
         // 是否显示最近登录设备栏目 (true=显示, false=隐藏)
         showRecentDevices: true
@@ -373,7 +375,7 @@ export const config  = {
     // 如果会配置的话建议配置一下，不会就别动了
     CUSTOM_HEADERS: {
         // 是否启用自定义标头
-        enabled: false, // 默认关闭，启用前请确保服务器已配置正确的CORS策略
+        enabled: true, // 默认关闭，启用前请确保服务器已配置正确的CORS策略
 
         // ⚠️ CORS警告：添加自定义标头将触发浏览器的预检请求(OPTIONS)
         // 服务器必须在响应中包含Access-Control-Allow-Headers字段，并列出这些自定义标头
@@ -384,7 +386,7 @@ export const config  = {
         // 格式: { "标头名称": "标头值" }
         // 例如: { "X-Custom-Header": "CustomValue" }
         headers: {
-            // "test": "test123"
+            "X-Request-Origin": "WEB"
         }
     },
 
@@ -438,7 +440,7 @@ export const config  = {
     // 邀请页面配置
     INVITE_CONFIG: {
         // 是否在导航栏的邀请按钮上显示返利标记
-        showCommissionBadge: false,
+        showCommissionBadge: true,
 
         // 返佣记录每页显示数量（最小值为10，API限制每次请求最少需要返回10条记录）
         recordsPerPage: 10,
@@ -448,7 +450,7 @@ export const config  = {
             // 链接模式：'auto'=自动使用当前站点域名，'custom'=使用自定义域名
             linkMode: 'auto',
             // 自定义域名，当linkMode为'custom'时使用
-            customDomain: 'https://example.com'
+            customDomain: 'https://t.kl8s.com'
         }
     },
 

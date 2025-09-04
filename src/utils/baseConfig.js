@@ -199,6 +199,7 @@ const DEFAULT_SITE_CONFIG = {
 
     // 是否显示标题中的网站Logo (true=显示, false=隐藏)
     showLogo: true,
+    showText: false,
 
     // Landing页面多语言标语
     landingText: {
@@ -512,23 +513,35 @@ const hexToRgb = (hex) => {
         hex = String(hex);
     }
 
-    // 去除空格
-    hex = hex.trim();
+    if (!hex) return [0, 0, 0];
 
-    // 处理缩写形式的颜色值（例如#FFF -> #FFFFFF）
-    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+    // 去除空格并统一小写
+    hex = hex.trim().toLowerCase();
 
-    // 正则匹配完整的十六进制颜色值
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    // 去掉开头的 #
+    if (hex.startsWith('#')) hex = hex.slice(1);
 
-    if (result) {
-        return [
-            parseInt(result[1], 16),
-            parseInt(result[2], 16),
-            parseInt(result[3], 16)
-        ];
+    // 支持 3 位 (#fff) 和 4 位 (#ffff) 的简写形式
+    if (hex.length === 3 || hex.length === 4) {
+        hex = hex.split('').map(c => c + c).join(''); // fff / ffff -> ffffff / ffffffff
     }
+
+    // 支持 8 位 RGBA，忽略 alpha 通道，只取前 6 位
+    if (hex.length === 8) {
+        hex = hex.slice(0, 6);
+    }
+
+    // 现在应为 6 位
+    if (hex.length !== 6 || /[^a-f\d]/i.test(hex)) {
+        // 返回一个安全的默认颜色，避免 undefined.join 抛错
+        return [0, 0, 0];
+    }
+
+    return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16)
+    ];
 };
 
 /**
@@ -537,16 +550,17 @@ const hexToRgb = (hex) => {
  * @returns {object} 主题色相关的颜色对象
  */
 const calculateThemeColors = (primaryColor) => {
-    const rgb = hexToRgb(primaryColor);
+    const rgb = hexToRgb(primaryColor) || [0, 0, 0];
+    const rgbStr = rgb.join(', ');
     return {
         primaryColor: primaryColor,
-        primaryColorRgb: rgb.join(', '),
+        primaryColorRgb: rgbStr,
         // 计算衍生颜色
-        primaryColorLight: `rgba(${rgb.join(', ')}, 0.1)`,
+        primaryColorLight: `rgba(${rgbStr}, 0.1)`,
         primaryColorDark: primaryColor,
-        primaryColorHover: `rgba(${rgb.join(', ')}, 0.9)`,
-        primaryColorActive: `rgba(${rgb.join(', ')}, 0.8)`,
-        primaryColorFocus: `rgba(${rgb.join(', ')}, 0.25)`
+        primaryColorHover: `rgba(${rgbStr}, 0.9)`,
+        primaryColorActive: `rgba(${rgbStr}, 0.8)`,
+        primaryColorFocus: `rgba(${rgbStr}, 0.25)`
     };
 };
 

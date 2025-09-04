@@ -8,9 +8,10 @@
     <!-- 设置初始标题 -->
     <title><%= htmlWebpackPlugin.options.title %></title>
     <!-- 预加载字体 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 使用国内镜像替换 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link href="https://fonts.loli.net/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <%= typeof injectCustomScript !== 'undefined' ? injectCustomScript : '' %>
 
     <!-- 全局样式 -->

@@ -39,11 +39,20 @@ polarisnet.cloud, polarislnk.com, t.polarisnet.cloud, t.polarislnk.com {
 	file_server
 }
 
-# 单页面静态站 (只有一个 index.html 也无妨保留 file_server)
+# 单页面静态站 (只有一个 index.html)
 polarisnet.link {
-	respond * 200 {
-	    body {file /var/www/polarisnet.link/index.html}
-	}
+	import static_common
+	root * /var/www/polarisnet.link
+	# 访问任何路径都返回 index.html (单页或单文件)
+	try_files {path} {path}/ /index.html
+	file_server
+	# 如果你真的只想暴露 index.html 且禁止其它文件，可改为：
+	# handle {
+	#     rewrite * /index.html
+	#     file_server {
+	#         root /var/www/polarisnet.link
+	#     }
+	# }
 }
 
 # 反向代理本地应用 (用户中心) -> 127.0.0.1:3000

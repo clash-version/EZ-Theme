@@ -837,7 +837,7 @@
   <script>
     // 在DOM加载前预先应用主题，避免白屏闪烁
     (function() {
-      const THEME_STORAGE_KEY = 'ez-theme-preference';
+      const THEME_STORAGE_KEY = 'galago-preference';
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
@@ -1130,7 +1130,7 @@
     const themeToggle = document.getElementById('themeToggle');
     const mobileThemeToggle = document.getElementById('mobileThemeToggle');
     const root = document.documentElement;
-    const THEME_STORAGE_KEY = 'ez-theme-preference';
+    const THEME_STORAGE_KEY = 'galago-preference';
     
     // 检查本地存储中的主题偏好
     function getThemePreference() {

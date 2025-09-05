@@ -82,7 +82,7 @@ s.polarisnet.cloud {
 	}
 }
 
-tiktoklab.org {
+clash-version.com {
 	import static_common
 	# Windows 下推荐使用正斜杠，Caddy 可识别；修改为你的构建输出目录s
 	root * /var/www/clash-version.com

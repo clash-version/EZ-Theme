@@ -41,7 +41,7 @@ export const config  = {
 
             // 是否拼接API路径
             appendApiPath: true,
-
+            
             // API路径
             apiPath: '/api/v1'
         }
@@ -52,7 +52,7 @@ export const config  = {
     API_MIDDLEWARE_ENABLED: false,
 
     // 中间件服务器URL (不含路径)
-    API_MIDDLEWARE_URL: 'https://user.kl8s.com',
+    API_MIDDLEWARE_URL: 'https://user.polarisnet.cloud',
 
     // 中间件路由前缀 (与中间件服务器配置保持一致)
     API_MIDDLEWARE_PATH: '/billing',

@@ -1,0 +1,103 @@
+{
+	email support@polarislnk.com
+	# 如需调试可取消注释:
+	# debug
+	# 自定义 ACME 端点示例（默认为 Let's Encrypt 生产环境）：
+	# acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+# 复用的静态站点通用配置片段
+(static_common) {
+	encode gzip zstd
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+	@immutable {
+		path_regexp staticExt \.(?:js|mjs|css|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|map)$
+	}
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+	log {
+		output file ./caddy-access.log {
+			roll_size 50mb
+			roll_keep 7
+			roll_keep_for 168h
+		}
+		format json
+	}
+}
+
+# 主站 + tui 共用相同前端构建目录 (请按需修改为你的真实路径)
+polarisnet.cloud, polarislnk.com,t.polarisnet.cloud, t.polarislnk.com {
+	import static_common
+	# Windows 下推荐使用正斜杠，Caddy 可识别；修改为你的构建输出目录
+	root * /var/www/polarisnet.cloud
+	try_files {path} {path}/ /index.html
+	file_server
+}
+
+# 单页面静态站 (只有一个 index.html 也无妨保留 file_server)
+polarisnet.link {
+	respond * 200 {
+	    body {file /var/www/polarisnet.link/index.html}
+	}
+}
+
+# 反向代理本地应用 (用户中心) -> 127.0.0.1:3000
+user.polarisnet.cloud,user.polarislnk.com {
+	reverse_proxy 127.0.0.1:3000 {
+		transport http {
+			read_timeout 30s
+			dial_timeout 5s
+		}
+		# 可选：健康检查
+		# health_uri /healthz
+	}
+	log {
+		output file ./caddy-user.log {
+			roll_size 20mb
+			roll_keep 5
+		}
+		format console
+	}
+}
+
+# 代理到外部 API
+s.polarislnk.com {
+	reverse_proxy https://api.polarislnk.com {
+		header_up Host api.polarislnk.com
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}
+
+s.polarisnet.cloud {
+	reverse_proxy https://api.polarislnk.com {
+		header_up Host api.polarislnk.com
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}
+
+tiktoklab.org {
+	import static_common
+	# Windows 下推荐使用正斜杠，Caddy 可识别；修改为你的构建输出目录s
+	root * /var/www/clash-version.com
+	try_files {path} {path}/ /index.html
+	file_server
+}
+
+
+# (可选) 本地调试自签（只在本地启用时使用，生产不要加）
+# :8080 {
+#     respond "local dev" 200
+# }
+
+# 提示：
+# 1. 确保上述域名的 DNS A/AAAA 记录都指向当前服务器公网 IP。
+# 2. 首次启动时若 80/443 被其他程序占用会导致自动签发失败。
+# 3. 修改配置后用: caddy.exe reload --config Caddyfile
+# 4. 日志与证书存储与运行方式有关；若用服务方式运行请确保 data 目录持久化。

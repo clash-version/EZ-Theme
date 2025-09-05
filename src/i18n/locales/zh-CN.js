@@ -513,7 +513,7 @@ export default {
             discount: {
                 relative: '更划算',
                 savings: '为您节省',
-                explain: '流量永不过期，低至',
+                explain: '按流量购买，只要',
             }
         },
         stats: {

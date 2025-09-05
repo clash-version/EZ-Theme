@@ -306,7 +306,7 @@
             </div>
             <div class="discount-calculation onetime-info" v-else-if="isOnetimeOnly(plan)">
               <div class="discount-info">
-                <span class="onetime-text">{{ $t('shop.plan.discount.explain') }} <strong class="discount-value">{{ getOnetimePricePerGB(plan) }}</strong> /GB</span>
+                <span class="onetime-text">{{ $t('shop.plan.discount.explain') }} <strong class="discount-value">{{ currencySymbol }}{{ getOnetimePricePerGB(plan) }}</strong> /GB</span>
               </div>
             </div>
 

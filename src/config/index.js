@@ -147,12 +147,12 @@ export const config  = {
             // 左侧区域内容配置
             leftContent: {
                 // 左侧背景图片URL或路径 (如不设置则不设置图片背景)
-                backgroundImage: 'https://www.loliapi.com/acg',
+                backgroundImage: '/images/img515.webp',
 
                 // 左上角网站名称配置
                 siteName: {
                     // 是否显示网站名称
-                    show: false,
+                    show: true,
                     // 文字颜色 (white或black)
                     color: 'white'
                 },
@@ -202,7 +202,7 @@ export const config  = {
         // 商店弹窗配置
         popup: {
             // 是否启用弹窗
-            enabled: false,
+            enabled: true,
 
             // 弹窗标题
             title: "用户须知",

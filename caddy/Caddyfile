@@ -12,10 +12,21 @@
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		X-Frame-Options "DENY"
-		X-Content-Type-Options "nosniff"
+		# X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "geolocation=(), microphone=(), camera=()"
 	}
+	# 确保JavaScript文件有正确的MIME类型
+	@js {
+		path_regexp jsExt \.m?js$
+	}
+	header @js Content-Type "text/javascript; charset=utf-8"
+	
+	# 确保CSS文件有正确的MIME类型
+	@css {
+		path *.css
+	}
+	header @css Content-Type "text/css; charset=utf-8"
 	@immutable {
 		path_regexp staticExt \.(?:js|mjs|css|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|map)$
 	}

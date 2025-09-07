@@ -108,13 +108,7 @@ user.polarisnet.cloud, user.polarislnk.com {
 }
 
 # 代理到外部 API
-s.polarislnk.com,s.polarisub.click {
-	reverse_proxy https://api.polarislnk.com {
-		header_up Host api.polarislnk.com
-	}
-}
-
-s.polarisnet.cloud,s.polarisub.click {
+s.polarislnk.com, s.polarisub.click, s.polarisnet.cloud {
 	reverse_proxy https://api.polarislnk.com {
 		header_up Host api.polarislnk.com
 	}

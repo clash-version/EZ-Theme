@@ -121,13 +121,13 @@ export const config  = {
         // 认证页面弹窗公告配置
         popup: {
             // 是否启用弹窗
-            enabled: false,
+            enabled: true,
 
             // 弹窗标题
             title: "用户须知 (可自定义开启)",
 
             // 弹窗内容 (支持HTML)
-            content: "<p><strong>欢迎使用我们的服务！</strong></p><p>请注意以下事项：</p><ul><li>请妥善保管您的账号信息</li><li>如有问题请联系客服</li></ul>",
+            content: "<p><strong>欢迎使用我们的服务！</strong></p><p>请注意以下事项：</p><ul><li>请妥善保管您的账号信息</li><li>收不到验证码请检查垃圾邮件</li><li>如有其他问题请右下角联系客服</li></ul>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
             cooldownHours: 0,
@@ -208,7 +208,7 @@ export const config  = {
             title: "用户须知",
 
             // 弹窗内容 (支持HTML)
-            content: "<p><strong>常规套餐默认每月订单日重置流量，您当月未用使用完的流量，不会累积到下个月</strong></p>",
+            content: "<p><strong>按周期套餐</strong>默认每月<strong>购买日重置流量</strong>，您当月未用使用完的流量，不会累积到下个月，<strong>按流量套餐</strong>不会重置，用完即止</p>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
             cooldownHours: 1,

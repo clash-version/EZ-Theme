@@ -232,7 +232,7 @@
               </div>
               <div class="import-content">
                 <div class="import-title">{{ $t('dashboard.copySubscription') }}</div>
-                <div class="import-desc">{{ $t('dashboard.copySubscriptionDesc') }}</div>
+                <div class="import-desc">{{ userPlan.subscribeUrl }}</div>
               </div>
             </div>
 
@@ -262,7 +262,7 @@
 
             <!-- iOS平台选项 -->
             <div v-if="activePlatform === 'ios'" class="platform-section">
-              <div class="platform-title">iOS</div>
+              <div class="platform-title">iOS - 点击下方图标一键导入</div>
               <div v-if="hasIOSClients" class="platform-options">
                 <div v-if="clientConfig.showShadowrocket" class="platform-option"
                      @click="importToClient('shadowrocket')">
@@ -301,7 +301,7 @@
 
             <!-- Android平台选项 -->
             <div v-if="activePlatform === 'android'" class="platform-section">
-              <div class="platform-title">Android</div>
+              <div class="platform-title">Android - 点击下方图标一键导入</div>
               <div v-if="hasAndroidClients" class="platform-options">
                 <div v-if="clientConfig.showFlClashAndroid" class="platform-option" @click="importToClient('flclash')">
                   <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
@@ -347,7 +347,7 @@
 
             <!-- Windows平台选项 -->
             <div v-if="activePlatform === 'windows'" class="platform-section">
-              <div class="platform-title">Windows</div>
+              <div class="platform-title">Windows - 点击下方图标一键导入</div>
               <div v-if="hasWindowsClients" class="platform-options">
                 <div v-if="clientConfig.showFlClashWindows" class="platform-option" @click="importToClient('flclash')">
                   <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
@@ -383,7 +383,7 @@
 
             <!-- MacOS平台选项 -->
             <div v-if="activePlatform === 'macos'" class="platform-section">
-              <div class="platform-title">MacOS</div>
+              <div class="platform-title">MacOS - 点击下方图标一键导入</div>
               <div v-if="hasMacOSClients" class="platform-options">
                 <div v-if="clientConfig.showFlClashMac" class="platform-option" @click="importToClient('flclash')">
                   <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
@@ -2927,6 +2927,9 @@ export default {
     .import-desc {
       font-size: 13px;
       color: var(--secondary-text-color);
+      word-break: break-all;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
   }
 }

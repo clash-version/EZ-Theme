@@ -217,7 +217,7 @@ export default {
         nextResetTime: '下次重置时间',
 
         importTitle: '选择导入方式',
-        copySubscription: '复制订阅地址',
+        copySubscription: '点此复制订阅地址',
         copySubscriptionDesc: '复制订阅链接到剪贴板',
         scanQRCode: '扫描二维码订阅',
         scanQRCodeDesc: '使用客户端扫描二维码导入',

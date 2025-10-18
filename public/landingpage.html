@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="icon" href="./images/logo.png">
-  <title>EZ</title>
+  <title>PolarisNet</title>
   <!-- 动态设置网站标题 -->
   <script>
     document.write('<script src="config.js?t=' + Math.random() + '"><\/script>');
@@ -41,9 +41,10 @@
     });
   </script>
   <!-- 字体 -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- 使用国内镜像替换 Google Fonts -->
+  <link rel="preconnect" href="https://fonts.loli.net">
+  <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+  <link href="https://fonts.loli.net/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
     /* 主题切换过渡效果 */
@@ -154,14 +155,14 @@
     }
 
     :root {
-      --primary-color: #355cc2;
-      --primary-color-light: #5c93ff;
+      --primary-color: #34A853;
+      --primary-color-light: #4cce6e;
       --primary-rgb: 53, 92, 194; /* RGB值用于透明度计算 */
       --text-color: #333;
       --text-light: #666;
       --background-color: #fff;
       --section-bg: #f5f5f7;
-      --button-hover: #2d4eaa;
+      --button-hover: #34A853;
       --primary-shadow: rgba(53, 92, 194, 0.3);
     }
 
@@ -375,7 +376,7 @@
     .hero-image {
       max-width: 85%;
       border-radius: 12px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+      /* box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); */
       margin: 0 auto;
     }
 
@@ -836,7 +837,7 @@
   <script>
     // 在DOM加载前预先应用主题，避免白屏闪烁
     (function() {
-      const THEME_STORAGE_KEY = 'ez-theme-preference';
+      const THEME_STORAGE_KEY = 'galago-preference';
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
@@ -850,7 +851,7 @@
   <header>
     <div class="logo">
       <img src="./images/logo.png" alt="Logo">
-      <h1 id="siteName">EZ</h1>
+      <h1 id="siteName">PolarisNet</h1>
     </div>
     <nav class="nav-links">
       <a href="#features">特性</a>
@@ -910,7 +911,7 @@
       <a href="javascript:void(0)" onclick="navigateTo('register')" class="button primary-button">立即开始</a>
       <a href="#download" class="button secondary-button">下载客户端</a>
     </div>
-    <img src="https://placehold.co/1200x675" alt="Dashboard Preview" class="hero-image">
+    <img src="/images/hero2.png" alt="Dashboard Preview" class="hero-image">
   </section>
 
   <section class="features" id="features">
@@ -1129,7 +1130,7 @@
     const themeToggle = document.getElementById('themeToggle');
     const mobileThemeToggle = document.getElementById('mobileThemeToggle');
     const root = document.documentElement;
-    const THEME_STORAGE_KEY = 'ez-theme-preference';
+    const THEME_STORAGE_KEY = 'galago-preference';
     
     // 检查本地存储中的主题偏好
     function getThemePreference() {

@@ -6,7 +6,7 @@
 
 export const config  = {
     // 面板类型配置 - 请选择您使用的面板类型
-    PANEL_TYPE: 'Xiao-V2board', // 可选值: 'V2board', 'Xiao-V2board' 或 'Xboard'
+    PANEL_TYPE: 'Xboard', // 可选值: 'V2board', 'Xiao-V2board' 或 'Xboard'
     // 说明:
     // 1. V2board: 标准V2board面板，使用默认请求格式
     // 2. Xiao-V2board: Xiao修改版面板，使用特殊格式的请求参数
@@ -23,15 +23,13 @@ export const config  = {
         urlMode: 'static',
       
         // 是否展示后端联通性检测
-        showCheckBackend: false,
+        showCheckBackend: true,
       
         // 静态URL模式下的基础URL (urlMode = 'static'时使用)
         // 支持字符串形式(单个API地址)或数组形式(多个备选API地址)
         // 多个地址时，会按顺序检测可用性，并使用第一个可用的地址
         staticBaseUrl: [
-            'https://w5x8mu2a9943r.ezdemo.xyz/api/v1',
-            'https://skhsn6q4pnv95.ezdemo.xyz/api/v1',
-            'https://gy1v06omopzc8.ezdemo.xyz/api/v1'
+            'https://adm.polarislnk.com//api/v1',
         ],
       
         // 自动获取模式配置 (urlMode = 'auto'时使用)
@@ -41,7 +39,7 @@ export const config  = {
 
             // 是否拼接API路径
             appendApiPath: true,
-
+            
             // API路径
             apiPath: '/api/v1'
         }
@@ -50,29 +48,24 @@ export const config  = {
     // 是否启用中间件代理API请求
     // 设置为true时，所有API请求将通过中间件转发
     API_MIDDLEWARE_ENABLED: true,
-  
-    //=======================================================
-    // 中间件服务器URL (不含路径) 开源地址 https://github.com/codeman857/EZ-Encrypt-Middleware
-    API_MIDDLEWARE_URL: 'https://d2ijw202als7c.ezdemo.xyz',
-  
-    // 中间件加密KEY必须是16位的16进制字符串，必须和中间件key保持一致 在线生成地址 https://www.bejson.com/math/hex_gen/
-    API_MIDDLEWARE_KEY: '4c6f8e5f9467dc71',
-    //=======================================================
+
+    // 中间件服务器URL (不含路径)
+    API_MIDDLEWARE_URL: 'https://user.polarisnet.cloud',
 
     // 中间件路由前缀 (与中间件服务器配置保持一致)
-    API_MIDDLEWARE_PATH: '/ez/ez',
+    API_MIDDLEWARE_PATH: '/billing',
 
     //=======================================================
 
     // ====================  网站基础配置  ====================
     SITE_CONFIG: {
-        siteName: 'EZ THEME',
-        siteDescription: 'EZ UI',
+        siteName: 'PolarisNet',
+        siteDescription: 'PolarisNet',
         // copyright会自动使用当前年份
-        copyright: `© ${new Date().getFullYear()} EZ THEME. All Rights Reserved.`,
+        copyright: `© ${new Date().getFullYear()} PolarisNet. All Rights Reserved.`,
 
         // 是否显示标题中的网站Logo (true=显示, false=隐藏)
-        showLogo: true,
+        showLogo: false,
 
         // Landing页面多语言标语
         landingText: {
@@ -101,10 +94,10 @@ export const config  = {
         defaultTheme: 'light',
 
         // 主题色 (16进制颜色值)
-        primaryColor: '#355cc2',
+        primaryColor: '#34a853',
 
         // 是否启用落地页 (true=启用, false=禁用)
-        enableLandingPage: true // 默认启用
+        enableLandingPage: false // 默认启用
     },
 
     // 认证页面功能配置
@@ -127,30 +120,30 @@ export const config  = {
             enabled: false,
 
             // 弹窗标题
-            title: "用户须知 (可自定义开启)",
+            title: "如果您注册、登入或使用遇到问题",
 
             // 弹窗内容 (支持HTML)
-            content: "<p><strong>欢迎使用我们的服务！</strong></p><p>请注意以下事项：</p><ul><li>请妥善保管您的账号信息</li><li>如有问题请联系客服</li></ul>",
+            content: "<p>请点击<strong>左下角绿色气泡</strong>，客服7x18小时在线为您解决</p>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
-            cooldownHours: 0,
+            cooldownHours: 144,
 
             // 等待时间（秒），用户需要等待多少秒才能关闭弹窗，设为0表示无需等待
-            closeWaitSeconds: 3
+            closeWaitSeconds: 0
         }
     },
 
     // 认证页面布局配置
     AUTH_LAYOUT_CONFIG: {
         // 布局类型: 'center' 为居中卡片布局, 'split' 为左右分栏布局
-        layoutType: 'center',
+        layoutType: 'split',
 
         // 左右分栏布局配置 (仅当 layoutType 为 'split' 时生效)
         splitLayout: {
             // 左侧区域内容配置
             leftContent: {
                 // 左侧背景图片URL或路径 (如不设置则不设置图片背景)
-                backgroundImage: 'https://www.loliapi.com/acg',
+                backgroundImage: './images/img515.webp',
 
                 // 左上角网站名称配置
                 siteName: {
@@ -174,22 +167,22 @@ export const config  = {
     // 商店页面配置
     SHOP_CONFIG: {
         // 是否在商店导航上显示热销标记
-        showHotSaleBadge: false,
+        showHotSaleBadge: true,
 
         // 是否显示套餐特性卡片 (true=显示, false=隐藏)
-        showPlanFeatureCards: true, // 默认显示
+        showPlanFeatureCards: false, // 默认显示
 
         // 是否自动选择周期最大的标签，设为false则不会自动选择
         autoSelectMaxPeriod: false, // 默认关闭
 
         // 是否隐藏周期选择标签 (true=隐藏, false=显示)
-        hidePeriodTabs: false, // 默认显示周期选择标签
+        hidePeriodTabs: true, // 默认显示周期选择标签
 
         // 库存紧张的阈值（当库存数量小于等于此值且大于0时显示库存紧张）
-        lowStockThreshold: 5,
+        lowStockThreshold: 1999,
 
         // 是否启用周期折扣计算显示 (true=启用, false=禁用)
-        enableDiscountCalculation: true, // 默认启用
+        enableDiscountCalculation: false, // 默认启用
 
         // 价格周期的显示顺序（从大到小）
         periodOrder: [
@@ -205,7 +198,7 @@ export const config  = {
         // 商店弹窗配置
         popup: {
             // 是否启用弹窗
-            enabled: true,
+            enabled: false,
 
             // 弹窗标题
             title: "用户须知",
@@ -214,7 +207,7 @@ export const config  = {
             content: "<p><strong>常规套餐默认每月订单日重置流量，您当月未用使用完的流量，不会累积到下个月</strong></p>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
-            cooldownHours: 0,
+            cooldownHours: 720,
 
             // 等待时间（秒），用户需要等待多少秒才能关闭弹窗，设为0表示无需等待
             closeWaitSeconds: 0
@@ -233,12 +226,12 @@ export const config  = {
         showUserEmail: false,
 
         // 是否为导入订阅按钮添加高光效果和填充底色 (true=添加效果, false=不添加效果)
-        importButtonHighlightBtnbgcolor: false,
+        importButtonHighlightBtnbgcolor: true,
 
         // ===============================
 
         // 是否启用重置流量功能 (true=启用, false=禁用)
-        enableResetTraffic: true,
+        enableResetTraffic: false,
 
         // 重置流量按钮显示条件 ('always'=始终显示, 'low'=流量低于阈值时显示, 'depleted'=流量耗尽时显示)
         resetTrafficDisplayMode: 'low',
@@ -261,7 +254,7 @@ export const config  = {
 
         // 是否显示在线设备数量限制 (true=显示, false=隐藏，仅Xiao-V2board支持)
         showOnlineDevicesLimit: true,
-        
+
         // 是否显示导入订阅
         showImportSubscription: true,
     },
@@ -281,12 +274,12 @@ export const config  = {
 
         // 客户端下载链接  //可以改成文档链接直接在新标签页打开
         clientLinks: {
-            ios: 'https://apps.apple.com/app/xxx',
-            android: 'https://play.google.com/store/apps/xxx',
-            macos: 'https://github.com/xxx/releases/latest',
-            windows: 'https://github.com/xxx/releases/latest',
-            linux: 'https://github.com/xxx/releases/latest',
-            openwrt: 'https://github.com/xxx/releases/latest'
+            windows: 'https://clash.guide/clash-verge.html',
+            android: 'https://clash.guide/clash-meta-for-android.html',
+            ios: 'https://apps.apple.com/us/app/shadowrocket/id932747118?l=zh-Hans-CN',
+            macos: 'https://clash.guide/flclash.html',
+            linux: 'https://github.com/chen08209/FlClash/releases',
+            openwrt: 'https://clash.guide/openclash.html'
         },
 
         // 订阅导入客户端显示控制 部分面板不支持SingBox导入请您注意检查
@@ -443,7 +436,7 @@ export const config  = {
     // 邀请页面配置
     INVITE_CONFIG: {
         // 是否在导航栏的邀请按钮上显示返利标记
-        showCommissionBadge: false,
+        showCommissionBadge: true,
 
         // 返佣记录每页显示数量（最小值为10，API限制每次请求最少需要返回10条记录）
         recordsPerPage: 10,
@@ -451,9 +444,9 @@ export const config  = {
         // 邀请链接配置
         inviteLinkConfig: {
             // 链接模式：'auto'=自动使用当前站点域名，'custom'=使用自定义域名
-            linkMode: 'auto',
+            linkMode: 'custom',
             // 自定义域名，当linkMode为'custom'时使用
-            customDomain: 'https://example.com'
+            customDomain: 'https://t.polarisnet.cloud',
         }
     },
 
@@ -523,7 +516,7 @@ export const config  = {
     // 节点列表配置
     NODES_CONFIG: {
         // 是否显示节点倍率 (true=显示, false=隐藏，若此处为false则allowViewNodeInfo也会为false)
-        showNodeRate: true,
+        showNodeRate: false,
 
         // 是否显示节点详细信息（主机和端口）
         showNodeDetails: false,
@@ -535,7 +528,7 @@ export const config  = {
     // 客服系统配置
     CUSTOMER_SERVICE_CONFIG: {
         // 是否启用客服系统
-        enabled: false,
+        enabled: true,
 
         // 客服系统类型: 'crisp' 或 'other'
         // 注意：当客服类型为crisp时，系统会自动向Crisp传递用户数据
@@ -543,7 +536,7 @@ export const config  = {
         type: 'crisp',
 
         // 客服系统JS代码，请将您的客服系统提供的嵌入代码粘贴在这里
-        customHtml: '',
+        customHtml: '<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="7cd550bf-8188-4191-b695-ff5a5f7ff3a5";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>',
 
         // 客服系统嵌入模式: 'popup'=弹出式页面, 'embed'=嵌入到每个页面
         // 'popup'模式: 点击客服图标会跳转到单独的客服页面
@@ -585,7 +578,7 @@ export const config  = {
     // More页面自定义卡片配置
     MORE_PAGE_CONFIG: {
         // 是否启用自定义卡片功能
-        enableCustomCards: false,
+        enableCustomCards: true,
 
         // 自定义卡片列表
         // 说明:
@@ -598,27 +591,43 @@ export const config  = {
         // 4. 您可以从https://tabler.io/icons 获取图标的SVG代码
         customCards: [
             // 自定义卡片示例
+            // {
+            //     id: 'node',
+            //     title: '节点实时状态',
+            //     description: '查看所有节点实时和近期可用性',
+            //     icon: 'IconCat',
+            //     url: 'https://node.qiaomimi.cloud',
+            //     openInNewTab: true
+            // },
             {
-                id: 'github',                  // 卡片唯一ID
-                title: 'GitHub',               // 卡片标题
-                description: '访问我们的GitHub', // 卡片描述
+                id: 'clash-download',
+                title: 'Clash 下载',
+                description: '可直接下载各版本Clash，无需科学上网',
+                icon: 'IconCat',
+                url: 'https://clash.guide',
+                openInNewTab: true
+            },
+            {
+                id: 'Clash-github',                  // 卡片唯一ID
+                title: 'Clash Github 原版',               // 卡片标题
+                description: '需要科学上网才能打开', // 卡片描述
                 svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" /></svg>',
-                url: 'https://github.com',     // 点击卡片跳转的URL
+                url: 'https://github.com/clash-version/clash-download',     // 点击卡片跳转的URL
                 openInNewTab: true             // 是否在新标签页打开
             },
             {
-                id: 'telegram',
-                title: 'Telegram',
-                description: '加入我们的Telegram频道',
-                svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-telegram" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" /></svg>',
-                url: 'https://t.me/your_group',
+                id: 'clash-faq',
+                title: 'Clash 常见问题',
+                description: '95%+ 情况都能得到有效解决',
+                icon: 'IconCat',
+                url: 'https://clash.guide/guide.html',
                 openInNewTab: true
             }
             // 可以继续添加更多卡片...
             // 主题格式，最后一个逗号要去掉
             // 使用svgIcon属性插入自定义SVG代码，确保SVG代码中使用currentColor以适应主题色
         ]
-    },
+    }
 };
 
 window.EZ_CONFIG = config

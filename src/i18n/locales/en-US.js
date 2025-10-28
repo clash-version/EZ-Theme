@@ -530,6 +530,10 @@ export default {
             discount: {
                 relative: 'Relative discount approx',
                 savings: 'saves you'
+            },
+            onetime: {
+                reminder: 'Data never expires, use until finished, only',
+                price_label: ''
             }
         },
         stats: {

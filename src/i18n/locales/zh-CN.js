@@ -529,6 +529,10 @@ export default {
             discount: {
                 relative: '相对折扣大约',
                 savings: '为您节省'
+            },
+            onetime: {
+                reminder: '流量不过期，用完为止，仅',
+                price_label: ''
             }
         },
         stats: {

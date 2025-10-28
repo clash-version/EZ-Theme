@@ -4,6 +4,7 @@ package-lock.json
 
 # 忽略打包输出目录
 dist/
+dist.zip
 build/
 
 # 忽略日志文件

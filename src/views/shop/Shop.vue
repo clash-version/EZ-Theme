@@ -316,6 +316,22 @@
 
             
 
+            <!-- 一次性套餐提醒 -->
+
+            <div class="onetime-reminder" v-if="SHOP_CONFIG.enableDiscountCalculation && calculateOnetimeInfo(plan).showReminder">
+
+              <div class="onetime-info">
+
+                <span class="reminder-text">{{ $t('shop.plan.onetime.reminder') }}</span>
+
+                <span class="price-per-gb">&nbsp;{{ $t('shop.plan.onetime.price_label') }}&nbsp;{{ currencySymbol }}{{ calculateOnetimeInfo(plan).pricePerGB }}/G</span>
+
+              </div>
+
+            </div>
+
+            
+
             <!-- 套餐特性 -->
 
             <div class="plan-features">
@@ -1208,6 +1224,48 @@ export default {
 
     
 
+    const calculateOnetimeInfo = (plan) => {
+
+      // 检查是否为一次性套餐（只有 onetime_price 且没有周期价格）
+
+      const hasRecurring = ['month_price', 'quarter_price', 'half_year_price', 'year_price', 'two_year_price', 'three_year_price']
+
+        .some(type => plan[type] !== null);
+
+      
+
+      // 如果不是纯一次性套餐，或者没有流量信息，则不显示提醒
+
+      if (hasRecurring || !plan.onetime_price || !plan.transfer_enable) {
+
+        return { showReminder: false, pricePerGB: 0 };
+
+      }
+
+      
+
+      // 计算每GB价格
+
+      const price = plan.onetime_price / 100; // 转换为元
+
+      const trafficGB = plan.transfer_enable; // 转换为GB
+
+      const pricePerGB = (price / trafficGB).toFixed(2);
+
+      
+
+      return {
+
+        showReminder: true,
+
+        pricePerGB: pricePerGB
+
+      };
+
+    };
+
+    
+
     return {
 
       plans,
@@ -1270,7 +1328,9 @@ export default {
 
       SHOP_CONFIG,
 
-      calculateDiscount
+      calculateDiscount,
+
+      calculateOnetimeInfo
 
     };
 
@@ -2204,6 +2264,64 @@ export default {
 
           color: var(--theme-color);
 
+          display: inline-block;
+
+          animation: breathe 3s ease-in-out infinite;
+
+        }
+
+      }
+
+    }
+
+    
+
+    .onetime-reminder {
+
+      margin: 5px 0 15px 0;
+
+      padding: 8px 12px;
+
+      background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.08) 0%, rgba(var(--theme-color-rgb), 0.03) 100%);
+
+      border-radius: 8px;
+
+      border: 1px solid rgba(var(--theme-color-rgb), 0.15);
+
+      
+
+      .onetime-info {
+
+        font-size: 13px;
+
+        text-align: center;
+
+        color: var(--text-color);
+
+        line-height: 1.6;
+
+        
+
+        .reminder-text {
+
+          font-weight: 500;
+
+          color: var(--secondary-text-color);
+
+        }
+
+        
+
+        .price-per-gb {
+
+          font-weight: 700;
+
+          color: var(--theme-color);
+
+          display: inline-block;
+
+          animation: breathe 3s ease-in-out infinite;
+
         }
 
       }
@@ -2773,6 +2891,28 @@ export default {
     100% {
 
       left: 200%;
+
+    }
+
+  }
+
+  
+
+  @keyframes breathe {
+
+    0%, 100% {
+
+      opacity: 1;
+
+      transform: scale(1);
+
+    }
+
+    50% {
+
+      opacity: 0.9;
+
+      transform: scale(1.1);
 
     }
 

@@ -170,7 +170,7 @@ export const config  = {
         showHotSaleBadge: true,
 
         // 是否显示套餐特性卡片 (true=显示, false=隐藏)
-        showPlanFeatureCards: false, // 默认显示
+        showPlanFeatureCards: true, // 默认显示
 
         // 是否自动选择周期最大的标签，设为false则不会自动选择
         autoSelectMaxPeriod: false, // 默认关闭
@@ -182,7 +182,7 @@ export const config  = {
         lowStockThreshold: 1999,
 
         // 是否启用周期折扣计算显示 (true=启用, false=禁用)
-        enableDiscountCalculation: false, // 默认启用
+        enableDiscountCalculation: true, // 默认启用
 
         // 价格周期的显示顺序（从大到小）
         periodOrder: [
@@ -215,9 +215,9 @@ export const config  = {
     },
     ORDER_CONFIG: {
         // 下单前二次确认
-        confirmOrder: false,
+        confirmOrder: true,
         // 下单前二次确认内容
-        confirmOrderContent: "<p><strong style='color: red'>无法提供相关教程和使用说明。</strong></p><p><strong style='color: red'>不会使用请勿购买，没有退款政策</strong></p>",
+        confirmOrderContent: "<p>购买此产品表示您已阅读并同意我们的</p><p><strong>《<a href='/#/docs/5'  style='color: green'>退款政策 (Refund Policy)</a>》</strong>与<strong>《<a href='/#/docs/4' style='color: green'>服务协议 (Terms of Service)</a>》</strong>。</p><p>感谢您的理解与支持。</p>",
 
     },
     // 仪表盘页面配置

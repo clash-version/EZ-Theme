@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>系统维护中 · PolarisNet</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #3fcf7f 0%, #0f5a3d 55%, #051b14 100%);
+      color: #e9fdf1;
+    }
+
+    .maintenance-card {
+      max-width: 520px;
+      width: 92%;
+      padding: 48px 40px;
+      background: rgba(5, 37, 24, 0.78);
+      border-radius: 24px;
+      border: 1px solid rgba(103, 212, 143, 0.32);
+      backdrop-filter: blur(16px);
+      text-align: center;
+      box-shadow: 0 30px 70px rgba(3, 20, 14, 0.55);
+    }
+
+    .maintenance-card h1 {
+      margin: 0 0 16px;
+      font-size: 2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .maintenance-card p {
+      margin: 0 0 24px;
+      line-height: 1.7;
+      color: rgba(210, 244, 224, 0.88);
+      font-size: 1rem;
+    }
+
+    .highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(52, 168, 83, 0.2);
+      color: #c9ffe0;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .countdown {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #7ee0aa;
+      margin-bottom: 32px;
+    }
+
+    .contact {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+      font-size: 0.95rem;
+      color: rgba(209, 244, 222, 0.78);
+    }
+
+    .contact a {
+      color: #7ee0aa;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(126, 224, 170, 0.4);
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .contact a:hover {
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.85);
+    }
+
+    @media (max-width: 520px) {
+      .maintenance-card {
+        padding: 36px 26px;
+      }
+
+      .maintenance-card h1 {
+        font-size: 1.75rem;
+      }
+
+      .countdown {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="maintenance-card">
+    <span class="highlight">系统升级进行中</span>
+    <h1>PolarisNet 正在维护</h1>
+    <p>
+      为了给您提供更稳定、更安全的服务，PolarisNet 正在进行计划内维护。
+      期间用户中心与节点服务将暂时不可用，敬请谅解。
+    </p>
+    <div class="countdown" id="countdown">预计恢复时间：2 小时内</div>
+    <p>
+      如果您有紧急情况或需要帮助，请通过以下方式联系我们：
+    </p>
+    <div class="contact">
+      <span>• 邮箱：<a href="mailto:support@polarislnk.com">support@polarislnk.com</a></span>
+      <span>• Telegram：<a href="https://t.me/polarislnk" target="_blank" rel="noopener">@polarislnk</a></span>
+      <span>• 客服工单：登录恢复后可前往工单中心提交</span>
+    </div>
+  </main>
+  <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="7cd550bf-8188-4191-b695-ff5a5f7ff3a5";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+  <script>
+    const target =  Date.now() + 2 * 60 * 60 * 1000;
+
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        document.getElementById('countdown').textContent = '预计恢复时间：请稍后刷新查看';
+        clearInterval(timer);
+        return;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      document.getElementById('countdown').textContent = `预计恢复时间：${String(minutes).padStart(2, '0')} 分 ${String(seconds).padStart(2, '0')} 秒`;
+    };
+
+    const timer = setInterval(tick, 1000);
+    tick();
+  </script>
+</body>
+</html>

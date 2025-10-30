@@ -754,7 +754,7 @@ export default {
             shareDescription: '我正在使用这个服务，推荐您也来体验'
         },
         records: {
-            title: '返佣记录',
+            title: '返佣记录(下方显示为3天前佣金,近三天佣金在确认中)',
             empty: '暂无返佣记录',
             date: '时间',
             commission: '佣金',

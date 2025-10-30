@@ -760,7 +760,7 @@ export default {
             commission: '佣金',
             details: '详情',
             user: '用户',
-            registerTime: '注册时间',
+            registerTime: '发放时间',
             amount: '消费金额',
             userPlaceholder: '用户',
             noRecords: '您还没有邀请记录，生成邀请码并分享给朋友吧！',

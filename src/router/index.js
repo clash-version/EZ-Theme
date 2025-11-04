@@ -345,6 +345,24 @@ const routes = [
 
       {
 
+        path: 'order',
+
+        redirect: to => {
+
+          return {
+
+            name: 'orders.payment',
+
+            query: to.query
+
+          }
+
+        }
+
+      },
+
+      {
+
         path: 'payment',
 
         name: 'Payment',

@@ -342,20 +342,28 @@ const routes = [
         }
 
       },
-
+      
       {
 
-        path: 'order',
+        path: 'order/:orderId',
 
-        redirect: to => {
+        name: 'OrderRedirect',
+
+        redirect: (to) => {
 
           return {
 
-            name: 'orders.payment',
+            name: 'Payment',
 
             query: to.query
 
-          }
+          };
+
+        },
+
+        meta: {
+
+          requiresAuth: true
 
         }
 

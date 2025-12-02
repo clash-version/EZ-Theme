@@ -27,7 +27,7 @@ if (isProd && enableConfigJS) {
 
 module.exports = defineConfig({
   publicPath: "./",
-  outputDir: "polarisnet.com",
+  outputDir: "polarisnet.cloud",
   assetsDir: "static",
   lintOnSave: false,
   productionSourceMap: false,

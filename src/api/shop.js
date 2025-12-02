@@ -98,7 +98,7 @@ export function getOrderDetail(tradeNo) {
 
   return request({
 
-    url: `/user/order/detail?trade_no=${tradeNo}t=${Date.now()}`,
+    url: `/user/order/detail?trade_no=${tradeNo}&t=${Date.now()}`,
 
     method: 'get'
 

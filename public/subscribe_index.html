@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北斗卫星导航系统</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #0c1f3f;
+            --blue: #215a8c;
+            --cyan: #3eb5c2;
+            --gold: #d2a66b;
+            --gray-100: #f5f6f8;
+            --gray-200: #e6e8ed;
+            --gray-600: #5c6673;
+            --gray-800: #333a47;
+            --max-width: 1180px;
+        }
+
+        body {
+            font-family: "Noto Sans SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--gray-800);
+            background: white;
+            line-height: 1.75;
+            letter-spacing: 0.02em;
+            overflow-x: hidden;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(12, 31, 63, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover,
+        nav a:focus-visible {
+            color: var(--gold);
+        }
+
+        .nav-menu > li {
+            position: relative;
+        }
+
+        .has-submenu > a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .has-submenu > a::after {
+            content: "▾";
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .has-submenu:hover > a::after,
+        .has-submenu:focus-within > a::after {
+            transform: rotate(180deg);
+        }
+
+        .submenu {
+            position: absolute;
+            top: calc(100% + 0.65rem);
+            left: 0;
+            background: rgba(8, 18, 37, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: 0 20px 40px rgba(5, 10, 20, 0.35);
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .has-submenu:hover .submenu,
+        .has-submenu:focus-within .submenu {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        main {
+            padding-top: 0;
+        }
+
+        .hero {
+            min-height: 70vh;
+            background: radial-gradient(circle at 25% 25%, rgba(62, 181, 194, 0.35), transparent 58%),
+                        radial-gradient(circle at 80% 20%, rgba(33, 90, 140, 0.42), transparent 50%),
+                        linear-gradient(135deg, #0f2648, #081225);
+            display: flex;
+            align-items: center;
+            padding: calc(6rem + 80px) 2rem 6rem;
+            margin-top: -80px;
+            color: #f7fafc;
+        }
+
+        .hero-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 3rem;
+        }
+
+        .hero-text h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .hero-text p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.88);
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .hero-stats .stat {
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            backdrop-filter: blur(6px);
+        }
+
+        .hero-stats .value {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .hero-stats small {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-illustration {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .hero-illustration::after {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+        }
+
+        .hero-illustration span {
+            display: block;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        section {
+            padding: 5rem 2rem;
+        }
+
+        .section-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            color: var(--navy);
+        }
+
+        .section-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 2.5rem;
+        }
+
+        .overview {
+            background: var(--gray-100);
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 3rem;
+        }
+
+        .content-card {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            padding: 2rem;
+            box-shadow: 0 12px 30px rgba(12, 31, 63, 0.08);
+        }
+
+        .content-card ul {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .content-card li {
+            padding-left: 1.25rem;
+            position: relative;
+            margin-bottom: 0.8rem;
+        }
+
+        .content-card li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.7rem;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--cyan);
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .architecture-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.8rem;
+        }
+
+        .architecture-card h3 {
+            color: var(--blue);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .services {
+            background: #fff;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .service-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            background: linear-gradient(145deg, #fff, #fdfdfd);
+        }
+
+        .service-card strong {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: var(--navy);
+        }
+
+        .applications {
+            background: var(--gray-100);
+        }
+
+        .application-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.4rem;
+        }
+
+        .application-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.6rem;
+            border: 1px solid var(--gray-200);
+            min-height: 210px;
+        }
+
+        .core-advantages {
+            background: #fff;
+        }
+
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .advantage-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.6rem;
+            background: linear-gradient(145deg, #fff, #fbfbfd);
+        }
+
+        .innovation {
+            background: var(--gray-100);
+        }
+
+        .innovation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .case-studies {
+            background: #fff;
+        }
+
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.4rem;
+        }
+
+        .case-card {
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            padding: 1.8rem;
+            background: #fff;
+        }
+
+        .case-card ul {
+            margin-top: 1rem;
+            padding-left: 1.2rem;
+        }
+
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .pill-list .pill {
+            background: var(--gray-100);
+            color: var(--blue);
+            border: 1px solid rgba(33, 90, 140, 0.2);
+        }
+
+        .cooperation {
+            background: var(--gray-100);
+        }
+
+        .cooperation-panel {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .cooperation-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .cooperation-metrics .metric {
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            background: #fff;
+        }
+
+        .future {
+            background: #fff;
+        }
+
+        .future-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.3rem;
+        }
+
+        .faq {
+            background: var(--gray-100);
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .faq-item {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.4rem;
+            background: #fff;
+        }
+
+        .timeline {
+            background: #fff;
+        }
+
+        .timeline-wrapper {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 0.8rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gray-200);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -0.2rem;
+            top: 0.4rem;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--blue);
+        }
+
+        .timeline-item h4 {
+            color: var(--blue);
+        }
+
+        .metrics {
+            background: var(--gray-100);
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 1.1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .metrics-table th {
+            background: #f0f2f5;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        footer {
+            background: var(--navy);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-content,
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-text h1 {
+                font-size: 2.4rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .nav-menu {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.2rem;
+            }
+
+            .has-submenu > a::after {
+                margin-left: auto;
+            }
+
+            .submenu {
+                position: static;
+                opacity: 1;
+                transform: none;
+                pointer-events: auto;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                box-shadow: none;
+                margin-top: 0.35rem;
+                padding: 0.6rem 0.8rem;
+            }
+
+            .submenu a {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 0.9rem;
+            }
+
+            section {
+                padding: 4rem 1.2rem;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .cooperation-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="brand">北斗卫星导航系统</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="has-submenu">
+                        <a href="#overview">系统总览</a>
+                        <ul class="submenu">
+                            <li><a href="#overview">系统概览</a></li>
+                            <li><a href="#core-advantages">核心优势</a></li>
+                            <li><a href="#architecture">体系结构</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#innovation">技术与服务</a>
+                        <ul class="submenu">
+                            <li><a href="#innovation">关键技术</a></li>
+                            <li><a href="#services">服务能力</a></li>
+                            <li><a href="#applications">典型应用</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#case-studies">实践与合作</a>
+                        <ul class="submenu">
+                            <li><a href="#case-studies">行业实践</a></li>
+                            <li><a href="#timeline">发展进程</a></li>
+                            <li><a href="#cooperation">国际合作</a></li>
+                            <li><a href="#future">未来展望</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#metrics">支撑资源</a>
+                        <ul class="submenu">
+                            <li><a href="#metrics">关键指标</a></li>
+                            <li><a href="#faq">常见问答</a></li>
+                            <li><a href="#references">参考资料</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" aria-labelledby="hero-heading">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 id="hero-heading">面向全球的中国卫星导航系统</h1>
+                    <p>北斗卫星导航系统（BeiDou Navigation Satellite System，BDS）是中国自主管理的全球卫星导航系统，为全球用户提供定位、导航、授时、短报文通信等综合服务，已成为国家级基础性战略工程。</p>
+                    <p>系统坚持“全球服务、中国特色”理念，兼顾国家重大需求与公众民生需求，持续扩展在交通运输、国土测绘、数字经济、公共安全等领域的深度覆盖。</p>
+                    <div class="hero-pill-list" aria-label="系统亮点">
+                        <span class="pill">2020 年全球服务正式开通</span>
+                        <span class="pill">短报文通信覆盖海陆空</span>
+                        <span class="pill">与多系统兼容互操作</span>
+                        <span class="pill">厘米至米级多层定位</span>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="value">55颗</div>
+                            <small>在轨工作卫星（含备份）</small>
+                        </div>
+                        <div class="stat">
+                            <div class="value">&lt;10米</div>
+                            <small>全球定位精度（95%概率）</small>
+                        </div>
+                        <div class="stat">
+                            <div class="value">5类</div>
+                            <small>特色服务能力</small>
+                        </div>
+                        <div class="stat">
+                            <div class="value">150+</div>
+                            <small>服务覆盖国家和地区</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-illustration">
+                    <span>“北斗系统是我国坚持自主创新、协同开放发展取得的重大科技成果，是面向全球、服务世界的重要空间基础设施。”</span>
+                    <span style="margin-top: 1.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.7);">—— 国家航天局发布</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="overview">
+            <div class="section-inner">
+                <h2 class="section-title">系统概览</h2>
+                <p class="section-subtitle">北斗系统由空间段、地面段、用户段构成，能够在全球范围内持续稳定运行，为民用与专业用户提供可靠导航保障。</p>
+                <div class="overview-grid">
+                    <article class="content-card fade-in">
+                        <h3>使命定位</h3>
+                        <p>北斗系统承担国家时空基准建设、空间基础设施完善和战略安全保障的重要任务，已纳入联合国全球卫星导航系统国际委员会（ICG）协调机制，是全球卫星导航“多系统互济”格局的重要组成。</p>
+                        <ul>
+                            <li>为各类交通运输方式提供安全、高效的动态导航基准。</li>
+                            <li>为国土测绘、精密农业、电力通信等行业提供高精度时间与空间基准。</li>
+                            <li>面向公众提供免费开放服务，支撑位置服务生态发展。</li>
+                        </ul>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>发展历程概述</h3>
+                        <p>北斗一号（区域试验系统）、北斗二号（亚太覆盖系统）、北斗三号（全球系统）三个阶段递进建设，2020年7月31日宣布全球系统正式开通，标志着全面具备全球服务能力。</p>
+                        <p>系统持续开展在轨维护和性能优化，通过星座补网、软件升级等手段保持服务连续性和高可靠性。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="core-advantages" class="core-advantages">
+            <div class="section-inner">
+                <h2 class="section-title">核心优势</h2>
+                <p class="section-subtitle">北斗通过多轨道混合星座、短报文通信、星地一体化运维等创新手段，形成高度可靠、特色鲜明的优势体系。</p>
+                <div class="advantages-grid">
+                    <article class="advantage-card fade-in">
+                        <h3>自主可控的空间基础设施</h3>
+                        <p>采用 MEO+GEO+IGSO 架构，重点区域实现持续加强覆盖，配套独立完备的测控、注入与授时系统，核心器部件完全自主可控。</p>
+                    </article>
+                    <article class="advantage-card fade-in">
+                        <h3>全天候高可靠服务</h3>
+                        <p>星座冗余与多源备份策略保障服务连续性，系统可用度不低于 0.95，关键时期可借助星间链路快速实现任务重构。</p>
+                    </article>
+                    <article class="advantage-card fade-in">
+                        <h3>多维融合的时空基准</h3>
+                        <p>构建卫星导航、地基增强、通信信号融合的多层体系，提供米级—厘米级多档精准定位，与国家授时系统保持统一。</p>
+                    </article>
+                    <article class="advantage-card fade-in">
+                        <h3>开放共享的产业生态</h3>
+                        <p>芯片、模组、终端供应链自主率持续提升，“芯片—终端—系统—服务”全链条产业成形，面向全球构建开放合作生态。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <div class="section-inner">
+                <h2 class="section-title">体系结构</h2>
+                <p class="section-subtitle">北斗系统遵循“空间-地面-用户”三段式总体架构，形成天地一体化运行模式。</p>
+                <div class="architecture-grid">
+                    <article class="architecture-card fade-in">
+                        <h3>空间段</h3>
+                        <p>由中圆轨道（MEO）、地球同步轨道（GEO）和倾斜地球同步轨道（IGSO）卫星构成的混合星座，实现全球覆盖与重点区域增强相结合。</p>
+                    </article>
+                    <article class="architecture-card fade-in">
+                        <h3>地面段</h3>
+                        <p>包括主控站、注入站、监测站及时间基准设施，负责星座监控管理、精密定轨、时间同步、星历参数注入等核心任务。</p>
+                    </article>
+                    <article class="architecture-card fade-in">
+                        <h3>用户段</h3>
+                        <p>涵盖各类终端、芯片与模块，支持导航定位、授时、短报文通信、星基增强及国际搜救等服务接口，具备国际兼容互操作能力。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="innovation" class="innovation">
+            <div class="section-inner">
+                <h2 class="section-title">关键技术创新</h2>
+                <p class="section-subtitle">持续的技术迭代是北斗保持领先的基础，涉及卫星平台、信号体制、链路技术、地基设施及智能运维等多个维度。</p>
+                <div class="innovation-grid">
+                    <article class="content-card fade-in">
+                        <h3>星载原子钟与信号体制</h3>
+                        <p>批量攻克铷原子钟、氢原子钟与激光钟等时间频率核心技术，发布 B1C/B2a 等新体制信号，兼容 GPS、Galileo 等系统。</p>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>星间链路与任务管理</h3>
+                        <p>星间链路实现星座网状互联，可在轨完成自主定轨、授时与管理，降低对地面站依赖，提升星座快速重构能力。</p>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>地基增强与 PPP 服务</h3>
+                        <p>建设国家一体化连续运行基准站网络，提供实时厘米级定位；面向大众开放 PPP-B2b 信号，赋能无人机、自动驾驶等应用。</p>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>智能化运维与安全</h3>
+                        <p>依托数字孪生与智能诊断平台，实现卫星健康监测、风险预警与软件在轨升级，显著缩短运维闭环周期。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services">
+            <div class="section-inner">
+                <h2 class="section-title">服务能力</h2>
+                <p class="section-subtitle">北斗面向全球用户提供开放服务与授权服务，特色功能凸显自主可控优势。</p>
+                <div class="services-grid">
+                    <article class="service-card fade-in">
+                        <strong>开放服务（OS）</strong>
+                        <p>免费提供定位、导航、授时服务，全球区域定位精度优于10 m，测速精度优于0.2 m/s。</p>
+                    </article>
+                    <article class="service-card fade-in">
+                        <strong>增值/授权服务</strong>
+                        <p>向特定用户提供厘米级/毫米级精密定位、高安全通信和抗干扰、抗欺骗能力。</p>
+                    </article>
+                    <article class="service-card fade-in">
+                        <strong>短报文通信</strong>
+                        <p>支持双向信息传输，单次上行 1,000 汉字，下行 14 KB，适用于海洋和偏远地区。</p>
+                    </article>
+                    <article class="service-card fade-in">
+                        <strong>星基增强（SBAS）</strong>
+                        <p>提供亚米级差分改正，满足民航、航海等行业对连续性与完整性的要求。</p>
+                    </article>
+                    <article class="service-card fade-in">
+                        <strong>精密单点定位（PPP）</strong>
+                        <p>面向专业用户提供分米至厘米级实时定位，服务全球范围运营。</p>
+                    </article>
+                    <article class="service-card fade-in">
+                        <strong>国际搜救</strong>
+                        <p>接入COSPAS-SARSAT系统，具备遇险报警上报与确认应答功能。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="applications" class="applications">
+            <div class="section-inner">
+                <h2 class="section-title">典型应用场景</h2>
+                <p class="section-subtitle">北斗已与经济社会发展深度融合，形成多行业、多层级应用体系。</p>
+                <div class="application-grid">
+                    <article class="application-card fade-in">
+                        <h3>综合交通运输</h3>
+                        <p>在铁路、民航、航运、道路运输等领域部署监控终端，通过时空基准统一提高调度、调运与安全保障能力。</p>
+                    </article>
+                    <article class="application-card fade-in">
+                        <h3>应急管理与减灾救援</h3>
+                        <p>短报文通信和高精度定位支撑山地、海岛等通信盲区的应急指挥、灾情上报与救援行动定位。</p>
+                    </article>
+                    <article class="application-card fade-in">
+                        <h3>精细农业与自然资源</h3>
+                        <p>自动驾驶农机、精准播种、农情监测等应用依托厘米级定位；国土测绘和生态监测实现高效采集与动态监管。</p>
+                    </article>
+                    <article class="application-card fade-in">
+                        <h3>大众消费与位置服务</h3>
+                        <p>北斗芯片和模组广泛应用于智能手机、可穿戴设备和物联网终端，支撑地图导航、出行服务和城市治理。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="case-studies" class="case-studies">
+            <div class="section-inner">
+                <h2 class="section-title">行业实践案例</h2>
+                <p class="section-subtitle">北斗在多个重点行业实现规模化部署，形成可复制、可推广的应用范式。</p>
+                <div class="case-grid">
+                    <article class="case-card fade-in">
+                        <h3>智慧港口与航运</h3>
+                        <p>宁波舟山港、上海港等建设北斗高精度定位平台，实现集卡调度、船舶靠离泊、危险品监管的全流程可视化。</p>
+                        <ul>
+                            <li>岸桥、场桥自动作业定位误差控制在 5 cm 以内。</li>
+                            <li>融合 AIS、雷达、视频等多源数据，码头调度效率提升 15%。</li>
+                        </ul>
+                    </article>
+                    <article class="case-card fade-in">
+                        <h3>自然资源调查与生态保护</h3>
+                        <p>国土测绘、林草监测利用北斗连续运行参考站开展高效数据采集，支撑生态保护红线监管与耕地资源普查。</p>
+                        <ul>
+                            <li>耕地“田块级”监测实现亚米级动态定位。</li>
+                            <li>无人机巡检搭载北斗 PPP，单架次测绘面积提升 30%。</li>
+                        </ul>
+                    </article>
+                    <article class="case-card fade-in">
+                        <h3>智慧出行与消费级终端</h3>
+                        <p>北斗三号双频定位成为国产智能手机标配，配合高精度地图与惯导算法，为共享出行、自动泊车提供可靠时空基准。</p>
+                        <ul>
+                            <li>国内出货北斗兼容芯片累计超过 15 亿颗。</li>
+                            <li>智慧公交、网约车平台实现秒级调度与轨迹追溯。</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="timeline">
+            <div class="section-inner">
+                <h2 class="section-title">发展进程</h2>
+                <div class="timeline-wrapper">
+                    <div class="timeline-line" aria-hidden="true"></div>
+                    <article class="timeline-item fade-in">
+                        <h4>1994 年</h4>
+                        <p>国家正式启动北斗一号工程，探索具备自主特色的卫星导航路线。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2000—2003 年</h4>
+                        <p>北斗一号系统建成并向国内提供服务，验证双星定位和短报文通信方案。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2009—2012 年</h4>
+                        <p>北斗二号区域系统完成星座部署，面向亚太地区提供连续导航服务。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2017—2018 年</h4>
+                        <p>北斗三号基本系统建成，开始向全球提供开放服务，性能指标全面达到设计要求。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2020 年 7 月 31 日</h4>
+                        <p>北斗三号全球系统正式开通，标志我国独立自主的全球卫星导航系统全面建成。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2021—2024 年</h4>
+                        <p>星座持续开展在轨备份和性能优化，北斗基础产品出口至“一带一路”沿线，新增上百个 CORS 站点形成广域补强能力。</p>
+                    </article>
+                    <article class="timeline-item fade-in">
+                        <h4>2030 年展望</h4>
+                        <p>规划下一代卫星导航系统，推进低轨补网、时空信息融合与智能化服务，实现更高精度、更高安全、更高智能。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="cooperation" class="cooperation">
+            <div class="section-inner">
+                <h2 class="section-title">国际合作与互操作</h2>
+                <p class="section-subtitle">北斗积极参与国际治理体系，与全球伙伴共享导航成果，共同推动多系统协同服务。</p>
+                <div class="content-card cooperation-panel fade-in">
+                    <div>
+                        <h3>合作重点</h3>
+                        <ul>
+                            <li>与 GPS、GLONASS、Galileo 建立频率协调与互操作机制，推动多系统融合定位。</li>
+                            <li>通过联合国 ICG、ICAO、IMO 等平台发布性能标准、民航/海事应用指南。</li>
+                            <li>与“一带一路”沿线国家共建示范工程，输出系统建设、运维和人才培养经验。</li>
+                        </ul>
+                    </div>
+                    <div class="cooperation-metrics">
+                        <div class="metric">
+                            <div class="value">40+</div>
+                            <small>签署合作协议国家/组织</small>
+                        </div>
+                        <div class="metric">
+                            <div class="value">1000+</div>
+                            <small>海外示范终端</small>
+                        </div>
+                        <div class="metric">
+                            <div class="value">6</div>
+                            <small>国际标准提案</small>
+                        </div>
+                        <div class="metric">
+                            <div class="value">24</div>
+                            <small>海外监测/增强站</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="future" class="future">
+            <div class="section-inner">
+                <h2 class="section-title">未来展望</h2>
+                <p class="section-subtitle">面向 2035 年现代化建设，北斗将与通信、遥感、遥测遥控等系统深度融合，构建泛在、智能、可信的新型时空基础设施。</p>
+                <div class="future-grid">
+                    <article class="content-card fade-in">
+                        <h3>多轨融合星座</h3>
+                        <p>规划低轨补网与新一代中高轨卫星，提升星座稠密度和服务连续性，面向大众提供厘米级普惠定位。</p>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>智能时空服务</h3>
+                        <p>融合 AI、云计算与边缘计算，建设统一时空智能平台，为自动驾驶、低空经济、元宇宙等新业态提供可信支撑。</p>
+                    </article>
+                    <article class="content-card fade-in">
+                        <h3>全球标准与生态</h3>
+                        <p>持续推进国际标准化和认证互认，拓展北斗产品输出渠道，打造共建共享的全球合作网络。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="metrics" class="metrics">
+            <div class="section-inner">
+                <h2 class="section-title">关键技术指标</h2>
+                <table class="metrics-table fade-in">
+                    <thead>
+                        <tr>
+                            <th>指标类别</th>
+                            <th>性能水平</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>定位精度</td>
+                            <td>全球优于 10 m，区域优于 5 m</td>
+                            <td>节段注入与星座优化后，东亚地区实测优于 3 m</td>
+                        </tr>
+                        <tr>
+                            <td>授时精度</td>
+                            <td>优于 20 ns</td>
+                            <td>同步基准由原子钟与国家授时系统联合构建</td>
+                        </tr>
+                        <tr>
+                            <td>短报文容量</td>
+                            <td>上行 1,000 汉字 / 次，下行 14 KB / 次</td>
+                            <td>支持海洋、沙漠等区域的低速率数据交换</td>
+                        </tr>
+                        <tr>
+                            <td>精密单点定位</td>
+                            <td>实时分米级，后处理厘米级</td>
+                            <td>通过PPP服务向全球用户开放高精度解算</td>
+                        </tr>
+                        <tr>
+                            <td>系统可用度</td>
+                            <td>>= 0.95</td>
+                            <td>星座具备冗余设计，支持快速在轨替换</td>
+                        </tr>
+                        <tr>
+                            <td>短报文覆盖能力</td>
+                            <td>全球 4 次/小时，区域 20 次/小时</td>
+                            <td>为海洋渔业、极地科考等提供双向通信保障</td>
+                        </tr>
+                        <tr>
+                            <td>芯片兼容性</td>
+                            <td>七模合一</td>
+                            <td>主流终端同时支持北斗、GPS、GLONASS、Galileo 等系统</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="faq" class="faq">
+            <div class="section-inner">
+                <h2 class="section-title">常见问答</h2>
+                <p class="section-subtitle">快速了解公众和行业关切的问题。</p>
+                <div class="faq-list">
+                    <article class="faq-item fade-in">
+                        <h3>北斗是否对公众免费开放？</h3>
+                        <p>北斗开放服务向全球公众免费提供定位、导航、授时功能，任何兼容北斗信号的终端均可直接使用，无需额外授权。</p>
+                    </article>
+                    <article class="faq-item fade-in">
+                        <h3>如何获得厘米级高精度服务？</h3>
+                        <p>可通过地基增强网络或 PPP-B2b 信号获取改正数据，配合专业接收机与算法即可实现实时厘米级定位。</p>
+                    </article>
+                    <article class="faq-item fade-in">
+                        <h3>北斗与其他系统能否同时使用？</h3>
+                        <p>北斗与 GPS、Galileo 等系统在频率和信号体制上保持兼容，终端可通过多系统融合进一步提升定位可靠性。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="references">
+            <div class="section-inner">
+                <h2 class="section-title">参考资料</h2>
+                <p>· 中国卫星导航系统管理办公室：《北斗卫星导航系统发展白皮书》<br>
+                   · 国际民航组织（ICAO）：全球导航卫星系统（GNSS）性能标准<br>
+                   · COSPAS-SARSAT：北斗卫星参与国际搜救合作公报<br>
+                   · 中国科学院国家授时中心：北斗时间基准与国家时间频率标准体系
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 北斗卫星导航系统 · 信息整理自公开官方资料</p>
+        <p>了解更多：<a href="https://www.beidou.gov.cn" target="_blank" rel="noreferrer">中国北斗卫星导航系统官方网站</a></p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', event => {
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    event.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

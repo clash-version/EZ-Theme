@@ -366,13 +366,15 @@ const routes = [
 
       {
 
-        path: 'order/:tradeNo',
+        path: 'order/:orderId',
 
         redirect: to => {
 
           return {
 
             name: 'Payment',
+
+            query: { trade_no: to.params.orderId }
 
           };
 

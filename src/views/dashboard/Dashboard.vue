@@ -257,7 +257,7 @@
               </div>
             </div>
 
-            <div class="import-action qrcode-action" @click="showQrCode = true">
+            <div class="import-action qrcode-action" @click="handleShowQrCode">
               <div class="import-icon">
                 <IconQrcode :size="24"/>
               </div>
@@ -1582,55 +1582,79 @@ export default {
       qrCodeLoading.value = false;
     };
 
+    const handleShowQrCode = () => {
+      // 检查订阅是否过期
+      if (isExpired.value) {
+        showToast(t('dashboard.subscriptionExpiredDesc'), 'error', 4000);
+        return;
+      }
+      showQrCode.value = true;
+    };
+
     const copySubscription = () => {
-      if (userPlan.value.subscribeUrl) {
-        const copyWithAPI = () => {
-          navigator.clipboard.writeText(userPlan.value.subscribeUrl)
-              .then(() => {
-                showToast(t('dashboard.subscriptionCopied'), 'success', 3000);
-              })
-              .catch(() => {
-                showToast(t('dashboard.copyFailed'), 'error', 3000);
-              });
-        };
+      if (!userPlan.value.subscribeUrl) {
+        showToast(t('dashboard.noSubscription'), 'error', 3000);
+        return;
+      }
 
-        const copyWithFallback = () => {
-          try {
-            const textarea = document.createElement('textarea');
-            textarea.value = userPlan.value.subscribeUrl;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '0';
-            textarea.style.top = '0';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
+      // 检查订阅是否过期
+      if (isExpired.value) {
+        showToast(t('dashboard.subscriptionExpiredDesc'), 'error', 4000);
+        return;
+      }
 
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            if (successful) {
+      const copyWithAPI = () => {
+        navigator.clipboard.writeText(userPlan.value.subscribeUrl)
+            .then(() => {
               showToast(t('dashboard.subscriptionCopied'), 'success', 3000);
-            } else {
+            })
+            .catch(() => {
               showToast(t('dashboard.copyFailed'), 'error', 3000);
-            }
-          } catch (err) {
-            console.error('使用后备方法复制失败:', err);
+            });
+      };
+
+      const copyWithFallback = () => {
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = userPlan.value.subscribeUrl;
+          textarea.style.position = 'fixed';
+          textarea.style.left = '0';
+          textarea.style.top = '0';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+
+          if (successful) {
+            showToast(t('dashboard.subscriptionCopied'), 'success', 3000);
+          } else {
             showToast(t('dashboard.copyFailed'), 'error', 3000);
           }
-        };
-
-        if (navigator.clipboard) {
-          copyWithAPI();
-        } else {
-          copyWithFallback();
+        } catch (err) {
+          console.error('使用后备方法复制失败:', err);
+          showToast(t('dashboard.copyFailed'), 'error', 3000);
         }
+      };
+
+      if (navigator.clipboard) {
+        copyWithAPI();
+      } else {
+        copyWithFallback();
       }
     };
 
     const importToClient = (clientType) => {
       if (!userPlan.value.subscribeUrl) {
         showToast(t('dashboard.noSubscription'), 'error', 3000);
+        return;
+      }
+
+      // 检查订阅是否过期
+      if (isExpired.value) {
+        showToast(t('dashboard.subscriptionExpiredDesc'), 'error', 4000);
         return;
       }
 
@@ -1859,6 +1883,16 @@ export default {
         return;
       }
 
+      // 判断是否为试用套餐 (ID=1)
+      if (userPlanId.value === 1) {
+        showToast(t('dashboard.trialPlanNotRenewableDesc'), 'warning', 4000);
+        // 延迟跳转到商店页面
+        setTimeout(() => {
+          router.push('/shop');
+        }, 1000);
+        return;
+      }
+
       router.push(`/order-confirm?id=${userPlanId.value}`);
     };
 
@@ -1973,6 +2007,7 @@ export default {
       qrCodeUrl,
       qrCodeLoading,
       qrCodeLoaded,
+      handleShowQrCode,
       showNoticeModal,
       closeNoticeModal,
       showNoticeDetails,

@@ -215,7 +215,7 @@ export const config  = {
     },
     ORDER_CONFIG: {
         // 下单前二次确认
-        confirmOrder: true,
+        confirmOrder: false,
         // 下单前二次确认内容
         confirmOrderContent: "<p>购买此产品表示您已阅读并同意我们的</p><p><strong>《<a href='/#/docs/5'  style='color: green'>退款政策 (Refund Policy)</a>》</strong>与<strong>《<a href='/#/docs/4' style='color: green'>服务协议 (Terms of Service)</a>》</strong>。</p><p>感谢您的理解与支持。</p>",
 

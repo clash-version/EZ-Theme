@@ -343,31 +343,7 @@ const routes = [
 
       },
       
-      {
 
-        path: 'order/:orderId',
-
-        name: 'OrderRedirect',
-
-        redirect: (to) => {
-
-          return {
-
-            name: 'Payment',
-
-            query: to.query
-
-          };
-
-        },
-
-        meta: {
-
-          requiresAuth: true
-
-        }
-
-      },
 
       {
 
@@ -384,6 +360,22 @@ const routes = [
           requiresAuth: true,
 
           activeNav: 'Shop' 
+        }
+
+      },
+
+      {
+
+        path: 'order/:tradeNo',
+
+        redirect: to => {
+
+          return {
+
+            name: 'Payment',
+
+          };
+
         }
 
       },

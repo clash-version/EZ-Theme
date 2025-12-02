@@ -54,8 +54,18 @@
            v-if="notices && notices.data && notices.data.length > 0" style="animation-delay: 0.2s">
         <div class="card-header">
           <h2 class="card-title">{{ $t('dashboard.siteAnnouncement') }}</h2>
-          <div class="notice-counter">
-            {{ $t('common.noticeCount', {current: currentNoticeIndex + 1, total: notices.data.length}) }}
+          <div class="notice-controls">
+            <div class="notice-counter">
+              {{ $t('common.noticeCount', {current: currentNoticeIndex + 1, total: notices.data.length}) }}
+            </div>
+            <button 
+              v-if="notices.data.length > 1"
+              class="carousel-control-btn" 
+              @click="toggleAutoRotate"
+              :title="autoRotateNotices ? $t('common.pauseCarousel') : $t('common.playCarousel')">
+              <IconPlayerPause v-if="autoRotateNotices" :size="16"/>
+              <IconPlayerPlay v-else :size="16"/>
+            </button>
           </div>
         </div>
         <div v-if="loading.notices" class="card-body skeleton-loading">
@@ -94,6 +104,17 @@
               </div>
             </div>
           </transition>
+          <!-- 轮播指示点 -->
+          <div v-if="notices.data.length > 1" class="carousel-indicators">
+            <button
+              v-for="(notice, index) in notices.data"
+              :key="notice.id"
+              class="indicator-dot"
+              :class="{ 'active': index === currentNoticeIndex }"
+              @click="goToNotice(index)"
+              :title="`${$t('common.goToNotice')} ${index + 1}`">
+            </button>
+          </div>
         </div>
       </div>
 
@@ -725,6 +746,8 @@ import {
   IconMessage,
   IconMoon,
   IconPackage,
+  IconPlayerPause,
+  IconPlayerPlay,
   IconQrcode,
   IconRefresh,
   IconRocket,
@@ -854,6 +877,8 @@ export default {
     IconAlertTriangle,
     IconX,
     IconCalendarPlus,
+    IconPlayerPause,
+    IconPlayerPlay,
     CommonDialog
   },
   setup() {
@@ -1395,18 +1420,35 @@ export default {
     const checkForPopupNotices = () => {
       if (!notices.value || !notices.value.data || notices.value.data.length === 0) return;
 
+      // 首先查找带有"弹窗"标签的公告
       const popupNoticeIndex = notices.value.data.findIndex(notice =>
           notice.tags && Array.isArray(notice.tags) && notice.tags.includes('\u5f39\u7a97')
       );
 
+      let targetNoticeIndex = -1;
+      let noticeId = null;
+
       if (popupNoticeIndex !== -1) {
-        const noticeId = notices.value.data[popupNoticeIndex].id;
+        // 如果找到带"弹窗"标签的公告，使用它
+        targetNoticeIndex = popupNoticeIndex;
+        noticeId = notices.value.data[popupNoticeIndex].id;
+      } else if (notices.value.data.length > 0) {
+        // 否则默认使用第一条公告
+        targetNoticeIndex = 0;
+        noticeId = notices.value.data[0].id;
+      }
+
+      if (targetNoticeIndex !== -1 && noticeId) {
         const popupShownKey = `popup_notice_shown_${noticeId}`;
 
         if (!sessionStorage.getItem(popupShownKey)) {
-          currentNoticeIndex.value = popupNoticeIndex;
+          currentNoticeIndex.value = targetNoticeIndex;
           showNoticeDetails.value = true;
           sessionStorage.setItem(popupShownKey, 'true');
+          // 打开弹窗时暂停轮播
+          if (autoRotateNotices.value) {
+            cleanupResources(timers, {});
+          }
           nextTick(() => {
             updateModalHeight();
           });
@@ -1447,17 +1489,47 @@ export default {
     const prevNotice = () => {
       if (currentNoticeIndex.value > 0) {
         currentNoticeIndex.value--;
+        resetAutoRotateTimer();
       }
     };
 
     const nextNotice = () => {
       if (currentNoticeIndex.value < notices.value.data.length - 1) {
         currentNoticeIndex.value++;
+      } else {
+        // 循环到第一条
+        currentNoticeIndex.value = 0;
+      }
+      resetAutoRotateTimer();
+    };
+
+    const goToNotice = (index) => {
+      currentNoticeIndex.value = index;
+      resetAutoRotateTimer();
+    };
+
+    const toggleAutoRotate = () => {
+      autoRotateNotices.value = !autoRotateNotices.value;
+      if (autoRotateNotices.value) {
+        startAutoRotateNotices();
+      } else {
+        cleanupResources(timers, {});
+      }
+    };
+
+    const resetAutoRotateTimer = () => {
+      if (autoRotateNotices.value) {
+        cleanupResources(timers, {});
+        startAutoRotateNotices();
       }
     };
 
     const showNoticeModal = () => {
       showNoticeDetails.value = true;
+      // 打开弹窗时暂停轮播
+      if (autoRotateNotices.value) {
+        cleanupResources(timers, {});
+      }
       nextTick(() => {
         updateModalHeight();
       });
@@ -1465,6 +1537,10 @@ export default {
 
     const closeNoticeModal = () => {
       showNoticeDetails.value = false;
+      // 关闭弹窗时恢复轮播
+      if (autoRotateNotices.value) {
+        startAutoRotateNotices();
+      }
     };
 
     const formatDate = (dateString) => {
@@ -1695,6 +1771,12 @@ export default {
       fetchUserStats();
 
       updateQRCodeUrl();
+
+      // 启动公告轮播
+      startAutoRotateNotices();
+
+      // 添加窗口大小改变监听
+      window.addEventListener('resize', handleResize);
     });
 
     watch(() => userPlan.value.subscribeUrl, () => {
@@ -1766,10 +1848,6 @@ export default {
         updateModalHeight();
       }
     };
-
-    onMounted(() => {
-      window.addEventListener('resize', handleResize);
-    });
 
     onBeforeUnmount(() => {
       window.removeEventListener('resize', handleResize);
@@ -1879,6 +1957,9 @@ export default {
       currentNoticeIndex,
       prevNotice,
       nextNotice,
+      goToNotice,
+      toggleAutoRotate,
+      autoRotateNotices,
       showImportCard,
       showQrCode,
       importToClient,
@@ -2325,9 +2406,38 @@ export default {
       justify-content: space-between;
       align-items: center;
 
+      .notice-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
       .notice-counter {
         font-size: 14px;
         color: var(--secondary-text-color);
+      }
+
+      .carousel-control-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background-color: rgba(var(--theme-color-rgb), 0.1);
+        color: var(--theme-color);
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: rgba(var(--theme-color-rgb), 0.2);
+          transform: scale(1.05);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
     }
 
@@ -2432,6 +2542,39 @@ export default {
               width: 100%;
             }
           }
+        }
+      }
+    }
+
+    // 轮播指示点样式
+    .carousel-indicators {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(var(--theme-color-rgb), 0.1);
+
+      .indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: rgba(var(--theme-color-rgb), 0.3);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0;
+
+        &:hover {
+          background-color: rgba(var(--theme-color-rgb), 0.5);
+          transform: scale(1.2);
+        }
+
+        &.active {
+          width: 24px;
+          border-radius: 4px;
+          background-color: var(--theme-color);
         }
       }
     }

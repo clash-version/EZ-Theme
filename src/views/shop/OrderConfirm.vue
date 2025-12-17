@@ -176,6 +176,14 @@
 
                 >
 
+                  <!-- 优惠角标 -->
+
+                  <div class="discount-badge" v-if="getPeriodSavings(type, price) > 0">
+
+                    <span>-{{ currencySymbol }}{{ (getPeriodSavings(type, price) / 100).toFixed(2) }}</span>
+
+                  </div>
+
                   <div class="period-card-inner">
 
                     <div class="period-type">{{ $t(`shop.plan.price_options.${getPriceTypeKey(type)}`) }}</div>
@@ -786,6 +794,64 @@ export default {
 
     
 
+    // 计算周期相对于月付的节省金额
+
+    const getPeriodSavings = (type, price) => {
+
+      if (!plan.value || type === 'month_price' || type === 'onetime_price') return 0;
+
+      
+
+      const monthPrice = plan.value.month_price;
+
+      if (!monthPrice || monthPrice <= 0) return 0;
+
+      
+
+      // 计算每个周期对应的月数
+
+      const periodMonths = {
+
+        quarter_price: 3,
+
+        half_year_price: 6,
+
+        year_price: 12,
+
+        two_year_price: 24,
+
+        three_year_price: 36
+
+      };
+
+      
+
+      const months = periodMonths[type];
+
+      if (!months) return 0;
+
+      
+
+      // 按月付计算的原价
+
+      const originalTotal = monthPrice * months;
+
+      // 实际价格
+
+      const actualPrice = price;
+
+      // 节省金额
+
+      const savings = originalTotal - actualPrice;
+
+      
+
+      return savings > 0 ? savings : 0;
+
+    };
+
+    
+
     const isJsonContent = (content) => {
 
       if (!content) return false;
@@ -1282,6 +1348,8 @@ export default {
       bestValuePeriod,
 
       getPriceTypeKey,
+
+      getPeriodSavings,
 
       isJsonContent,
 
@@ -1965,6 +2033,46 @@ export default {
 
         
 
+        // 优惠角标样式
+
+        .discount-badge {
+
+          position: absolute;
+
+          top: 0;
+
+          right: 0;
+
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+
+          color: #fff;
+
+          font-size: 11px;
+
+          font-weight: 600;
+
+          padding: 4px 8px;
+
+          border-radius: 0 10px 0 10px;
+
+          z-index: 2;
+
+          box-shadow: 0 2px 6px rgba(238, 90, 90, 0.3);
+
+          
+
+          span {
+
+            display: block;
+
+            white-space: nowrap;
+
+          }
+
+        }
+
+        
+
         &.active {
 
           border-color: var(--theme-color);
@@ -1992,6 +2100,16 @@ export default {
               color: var(--theme-color);
 
             }
+
+          }
+
+          
+
+          .discount-badge {
+
+            background: linear-gradient(135deg, var(--theme-color) 0%, var(--theme-color) 100%);
+
+            box-shadow: 0 2px 6px rgba(var(--theme-color-rgb), 0.3);
 
           }
 

@@ -108,6 +108,8 @@
 
                 :disabled="codeSent"
 
+                autocomplete="off"
+
                 required
 
               />
@@ -171,6 +173,8 @@
               :placeholder="$t('auth.emailPlaceholder')"
 
               :disabled="codeSent"
+
+              autocomplete="off"
 
               required
 

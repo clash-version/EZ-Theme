@@ -82,7 +82,7 @@ export const config  = {
         // 自定义landing页面路径（相对于public目录
         // 例如：'testlandingpage.html'
         // 如果为空则不启用自定义landing页面
-        customLandingPage: ''
+        customLandingPage: 'landingpage.html'
     },
 
     // 默认语言和主题配置
@@ -97,7 +97,7 @@ export const config  = {
         primaryColor: '#34a853',
 
         // 是否启用落地页 (true=启用, false=禁用)
-        enableLandingPage: false // 默认启用
+        enableLandingPage: true // 默认启用
     },
 
     // 认证页面功能配置
@@ -136,7 +136,7 @@ export const config  = {
     // 认证页面布局配置
     AUTH_LAYOUT_CONFIG: {
         // 布局类型: 'center' 为居中卡片布局, 'split' 为左右分栏布局
-        layoutType: 'split',
+        layoutType: 'center',
 
         // 左右分栏布局配置 (仅当 layoutType 为 'split' 时生效)
         splitLayout: {
@@ -548,7 +548,7 @@ export const config  = {
 
         // 图标位置配置
         iconPosition: {
-            // 桌面版图标距离左下角的距离
+            // 桌面版图标距离右下角的距离
             desktop: {
                 right: '20px',
                 bottom: '20px'

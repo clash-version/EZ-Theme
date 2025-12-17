@@ -2,6 +2,7 @@
 node_modules/
 package-lock.json
 
+polarisnet.cloud/
 # 忽略打包输出目录
 dist/
 dist.zip

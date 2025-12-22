@@ -50,7 +50,7 @@ export const config  = {
     API_MIDDLEWARE_ENABLED: true,
 
     // 中间件服务器URL (不含路径)
-    API_MIDDLEWARE_URL: 'https://user.polarisnet.cloud',
+    API_MIDDLEWARE_URL: 'https://user.polarisnet-01.com',
 
     // 中间件路由前缀 (与中间件服务器配置保持一致)
     API_MIDDLEWARE_PATH: '/billing',
@@ -65,7 +65,7 @@ export const config  = {
         copyright: `© ${new Date().getFullYear()} PolarisNet. All Rights Reserved.`,
 
         // 是否显示标题中的网站Logo (true=显示, false=隐藏)
-        showLogo: false,
+        showLogo: true,
 
         // Landing页面多语言标语
         landingText: {
@@ -170,7 +170,7 @@ export const config  = {
         showHotSaleBadge: true,
 
         // 是否显示套餐特性卡片 (true=显示, false=隐藏)
-        showPlanFeatureCards: true, // 默认显示
+        showPlanFeatureCards: false, // 默认显示
 
         // 是否自动选择周期最大的标签，设为false则不会自动选择
         autoSelectMaxPeriod: false, // 默认关闭
@@ -351,7 +351,7 @@ export const config  = {
     // 验证码配置
     CAPTCHA_CONFIG: {
         // 验证方式: 'google' 或 'cloudflare'
-        captchaType: 'google',
+        captchaType: 'cloudflare',
 
         // Google reCAPTCHA 配置 默认v2版本
         google: {
@@ -446,7 +446,7 @@ export const config  = {
             // 链接模式：'auto'=自动使用当前站点域名，'custom'=使用自定义域名
             linkMode: 'custom',
             // 自定义域名，当linkMode为'custom'时使用
-            customDomain: 'https://t.polarisnet.cloud',
+            customDomain: 'https://polarisnet-01.com',
         }
     },
 

@@ -1,0 +1,19 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M32 4C40 4 50 8 56 16" stroke="url(#paint1_linear)" stroke-width="8" stroke-linecap="round"/>
+<path d="M60 32C60 47.464 47.464 60 32 60C16.536 60 4 47.464 4 32C4 16.536 16.536 4 32 4" stroke="url(#paint0_linear)" stroke-width="8" stroke-linecap="round"/>
+
+<circle cx="32" cy="32" r="20" fill="url(#softEdge)"/>
+
+<defs>
+<radialGradient id="softEdge" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0.85" stop-color="black"/>
+<stop offset="1" stop-color="black" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="paint0_linear" x1="32" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+<stop stop-color="#5bdaafff"/> <stop offset="1" stop-color="#34a853"/> </linearGradient>
+<linearGradient id="paint1_linear" x1="32" y1="4" x2="56" y2="16" gradientUnits="userSpaceOnUse">
+<stop stop-color="#5bdaafff"/>
+<stop offset="1" stop-color="#f1d6f5ff" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

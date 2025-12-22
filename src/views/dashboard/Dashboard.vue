@@ -1,122 +1,489 @@
 ﻿<template>
   <div class="dashboard-container">
     <div class="dashboard-inner">
-      <div class="dashboard-card welcome-card" :class="{'card-animate': !loading.userInfo}">
-        <div class="card-header">
-          <h2 class="card-title">{{ $t('dashboard.welcome') }}</h2>
-        </div>
-        <div class="card-body">
-          <p class="">{{ $t('dashboard.welcomeDesc') }}</p>
-          <p v-if="userStats.userEmail && DASHBOARD_CONFIG.showUserEmail" class="user-email">
-            <IconMail :size="16"/>
-            <span>{{ userStats.userEmail }}</span>
-          </p>
-        </div>
-      </div>
-
-      <!-- 通知区域 -->
-      <!-- 待处理事项提示 -->
-      <div v-if="hasPendingItems" class="dashboard-card pending-items-card"
-           :class="{'card-animate': !loading.userStats}" style="animation-delay: 0.1s">
-        <div class="card-header">
-          <h2 class="card-title">{{ $t('dashboard.pendingItems') }}</h2>
-        </div>
-        <div class="card-body">
-          <div class="pending-items-list">
-            <div v-if="userStats.pendingOrders > 0" class="pending-item" @click="router.push('/orders')">
-              <div class="pending-icon">
-                <IconShoppingCart :size="20"/>
+      
+      <!-- 顶部英雄区域：欢迎 + 快捷统计 -->
+      <div class="hero-section" :class="{'card-animate': !loading.userInfo}">
+        <div class="hero-content">
+          <div class="hero-welcome">
+            <h1 class="hero-title">{{ $t('dashboard.welcome') }} <span class="emoji">👋</span></h1>
+            <p class="hero-desc">{{ $t('dashboard.welcomeDesc') }}</p>
+            <p v-if="userStats.userEmail && DASHBOARD_CONFIG.showUserEmail" class="hero-email">
+              <IconMail :size="16"/>
+              <span>{{ userStats.userEmail }}</span>
+            </p>
+          </div>
+          
+          <!-- 快捷统计数据 - 嵌入英雄区 -->
+          <div class="hero-stats" v-if="hasPlan && !loading.userStats">
+            <div class="hero-stat-item" :class="{'stat-warning': isLowTraffic && !isTrafficDepleted, 'stat-danger': isTrafficDepleted}">
+              <div class="stat-circle">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="circle-fill" :stroke-dasharray="`${trafficPercentage}, 100`" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                </svg>
+                <IconTransferVertical :size="18" class="stat-icon"/>
               </div>
-              <div class="pending-info">
-                <span class="">{{ $t('dashboard.pendingOrders') }} ({{ userStats.pendingOrders }})</span>
-              </div>
-              <div class="pending-action">
-                <IconChevronRight :size="16"/>
+              <div class="stat-info">
+                <span class="stat-value">{{ userStats.remainingTraffic }}</span>
+                <span class="stat-label">{{ $t('dashboard.remainingTraffic') }}</span>
               </div>
             </div>
-
-            <div v-if="userStats.pendingTickets > 0" class="pending-item" @click="goToSupport">
-              <div class="pending-icon">
-                <IconMessage :size="20"/>
+            <div class="hero-stat-item" :class="{'stat-warning': isExpiringSoon && !isExpired, 'stat-danger': isExpired}">
+              <div class="stat-circle">
+                <IconCalendar :size="18" class="stat-icon solo"/>
               </div>
-              <div class="pending-info">
-                <span class="">{{ $t('dashboard.pendingTickets') }} ({{ userStats.pendingTickets }})</span>
+              <div class="stat-info">
+                <span class="stat-value">{{ userStats.isRemainingDaysPermanent ? $t('dashboard.permanent') : userStats.remainingDays + $t('dashboard.days') }}</span>
+                <span class="stat-label">{{ $t('dashboard.remainingDays') }}</span>
               </div>
-              <div class="pending-action">
-                <IconChevronRight :size="16"/>
+            </div>
+            <div class="hero-stat-item clickable" @click="isXiaoPanel ? navigateToDeposit() : null">
+              <div class="stat-circle">
+                <IconWallet :size="18" class="stat-icon solo"/>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ userStats.accountBalance }}</span>
+                <span class="stat-label">{{ $t('dashboard.accountBalance') }}</span>
+              </div>
+            </div>
+            <div class="hero-stat-item clickable" @click="router.push('/invite')" v-if="parseFloat(userStats.commissionBalance) > 0">
+              <div class="stat-circle commission">
+                <IconGift :size="18" class="stat-icon solo"/>
+              </div>
+              <div class="stat-info">
+                <span class="stat-value">{{ currencySymbol }}{{ userStats.commissionBalance }}</span>
+                <span class="stat-label">{{ $t('dashboard.commissionBalance') }}</span>
               </div>
             </div>
           </div>
         </div>
+        
+        <!-- 装饰背景 -->
+        <div class="hero-decoration">
+          <div class="deco-shape shape-1"></div>
+          <div class="deco-shape shape-2"></div>
+          <div class="deco-shape shape-3"></div>
+        </div>
       </div>
 
-      <div class="dashboard-card notice-card" :class="{'card-animate': !loading.notices}"
-           v-if="notices && notices.data && notices.data.length > 0" style="animation-delay: 0.2s">
-        <div class="card-header">
-          <h2 class="card-title">{{ $t('dashboard.siteAnnouncement') }}</h2>
-          <div class="notice-controls">
-            <div class="notice-counter">
-              {{ $t('common.noticeCount', {current: currentNoticeIndex + 1, total: notices.data.length}) }}
-            </div>
-            <button 
-              v-if="notices.data.length > 1"
-              class="carousel-control-btn" 
-              @click="toggleAutoRotate"
-              :title="autoRotateNotices ? $t('common.pauseCarousel') : $t('common.playCarousel')">
-              <IconPlayerPause v-if="autoRotateNotices" :size="16"/>
-              <IconPlayerPlay v-else :size="16"/>
-            </button>
+      <!-- 移动端公告 - 仅在小屏幕显示 -->
+      <div class="mobile-notice" v-if="notices && notices.data && notices.data.length > 0" :class="{'card-animate': !loading.notices}">
+        <div class="notice-header">
+          <div class="notice-title-row">
+            <IconBell :size="18"/>
+            <span>{{ $t('dashboard.siteAnnouncement') }}</span>
+          </div>
+          <div class="notice-nav-mini">
+            <button @click="prevNotice" :disabled="currentNoticeIndex <= 0"><IconChevronLeft :size="14"/></button>
+            <span class="notice-count">{{ currentNoticeIndex + 1 }}/{{ notices.data.length }}</span>
+            <button @click="nextNotice" :disabled="currentNoticeIndex >= notices.data.length - 1"><IconChevronRight :size="14"/></button>
           </div>
         </div>
-        <div v-if="loading.notices" class="card-body skeleton-loading">
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row"></div>
-        </div>
-        <div v-else class="card-body">
+        <div class="notice-body" @click="showNoticeModal">
           <transition name="fade-slide" mode="out-in">
-            <div class="notice-item" v-if="notices.data[currentNoticeIndex]" :key="currentNoticeIndex">
-              <div class="notice-title">{{ notices.data[currentNoticeIndex].title }}</div>
-              <div class="notice-footer">
-                <div class="notice-date">{{ formatDate(notices.data[currentNoticeIndex].created_at) }}</div>
-                <div class="notice-nav">
-                  <button
-                      class="btn-notice"
-                      @click="prevNotice"
-                      :disabled="currentNoticeIndex <= 0">
-                    <IconChevronLeft :size="16"/>
-                    {{ $t('common.prevNotice') }}
-                  </button>
-                  <button
-                      class="btn-notice"
-                      @click="showNoticeModal">
-                    <IconEye :size="16"/>
-                    {{ $t('common.viewDetails') }}
-                  </button>
-                  <button
-                      class="btn-notice"
-                      @click="nextNotice"
-                      :disabled="currentNoticeIndex >= notices.data.length - 1">
-                    {{ $t('common.nextNotice') }}
-                    <IconChevronRight :size="16"/>
-                  </button>
+            <div class="notice-text" :key="currentNoticeIndex">
+              <strong>{{ notices.data[currentNoticeIndex].title }}</strong>
+              <span class="notice-date">{{ formatDate(notices.data[currentNoticeIndex].created_at) }}</span>
+            </div>
+          </transition>
+        </div>
+      </div>
+
+      <!-- 主内容区：双栏布局 -->
+      <div class="main-content-grid">
+        
+        <!-- 左栏：套餐信息和操作 -->
+        <div class="left-column">
+          
+          <!-- 待处理事项 - 紧凑横条 -->
+          <div v-if="hasPendingItems" class="pending-bar" :class="{'card-animate': !loading.userStats}">
+            <div v-if="userStats.pendingOrders > 0" class="pending-tag" @click="router.push('/orders')">
+              <IconShoppingCart :size="16"/>
+              <span>{{ userStats.pendingOrders }} {{ $t('dashboard.pendingOrders') }}</span>
+              <IconChevronRight :size="14"/>
+            </div>
+            <div v-if="userStats.pendingTickets > 0" class="pending-tag" @click="goToSupport">
+              <IconMessage :size="16"/>
+              <span>{{ userStats.pendingTickets }} {{ $t('dashboard.pendingTickets') }}</span>
+              <IconChevronRight :size="14"/>
+            </div>
+          </div>
+
+          <!-- 套餐信息卡片 - 重新设计 -->
+          <div v-if="hasPlan" class="plan-card" :class="{'card-animate': !loading.userInfo}">
+            <div class="plan-header">
+              <div class="plan-name-badge">
+                <IconBox :size="20"/>
+                <span>{{ userPlan.name || $t('dashboard.noSubscription') }}</span>
+              </div>
+              <div class="plan-status" :class="{'expired': isExpired, 'expiring': isExpiringSoon && !isExpired}">
+                {{ isExpired ? $t('dashboard.expired') : (isExpiringSoon ? $t('dashboard.expiringSoon') : $t('dashboard.active')) }}
+              </div>
+            </div>
+            
+            <div class="plan-details">
+              <div class="detail-row">
+                <span class="detail-label"><IconCalendar :size="14"/> {{ $t('dashboard.expiryDate') }}</span>
+                <span class="detail-value">{{ userPlan.isExpireDatePermanent ? $t('dashboard.permanent') : (userPlan.expireDate || $t('dashboard.none')) }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><IconTransferVertical :size="14"/> {{ $t('dashboard.planTraffic') }}</span>
+                <span class="detail-value">{{ userPlan.totalTraffic || '0 GB' }}</span>
+              </div>
+              <div class="detail-row" v-if="userPlan.resetDay">
+                <span class="detail-label"><IconRefresh :size="14"/> {{ $t('dashboard.nextResetTime') }}</span>
+                <span class="detail-value">{{ userPlan.resetDay }} {{ $t('dashboard.days') }}</span>
+              </div>
+              <div class="detail-row" v-if="showDeviceLimit">
+                <span class="detail-label"><IconDeviceDesktop :size="14"/> {{ $t('dashboard.deviceLimit') }}</span>
+                <span class="detail-value">{{ userPlan.deviceLimit === null ? `${userPlan.aliveIp} / ${$t('dashboard.unlimited')}` : `${userPlan.aliveIp} / ${userPlan.deviceLimit}` }}</span>
+              </div>
+            </div>
+
+            <div class="plan-actions">
+              <button v-if="showImportSubscription" class="action-btn primary" :class="{'btn-active': showImportCard}" @click="toggleImportCard">
+                <IconShare :size="18"/>
+                <span>{{ $t('dashboard.importSubscription') }}</span>
+              </button>
+              <button v-if="showRenewPlanButton && (isExpiringSoon || isExpired)" class="action-btn" :class="{'warning': isExpiringSoon && !isExpired, 'danger': isExpired}" @click="renewPlan">
+                <IconShoppingCart :size="18"/>
+                <span>{{ $t('dashboard.renewPlan') }}</span>
+              </button>
+              <button v-if="showResetTrafficButton" class="action-btn" :class="{'warning': isLowTraffic && !isTrafficDepleted, 'danger': isTrafficDepleted}" @click="openResetTrafficModal">
+                <IconRefresh :size="18"/>
+                <span>{{ $t('dashboard.resetTraffic') }}</span>
+              </button>
+              <button v-if="allowNewPeriod==='1'&&showResetTrafficButton" class="action-btn" @click="showPopup=true">
+                <IconCalendarPlus :size="18"/>
+              </button>
+              <button class="action-btn support-btn" @click="goToSupport" :title="$t('dashboard.ticketSupport')">
+                <IconMessage :size="18"/>
+                <span class="btn-text-mobile">{{ $t('dashboard.ticketSupport') }}</span>
+              </button>
+              <button class="action-btn" @click="openDocumentation" :title="$t('dashboard.documentation')">
+                <IconFileText :size="18"/>
+                <span class="btn-text-mobile">{{ $t('dashboard.documentation') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 无套餐提示 -->
+          <div v-else-if="!loading.userInfo" class="no-plan-card" :class="{'card-animate': !loading.userStats}">
+            <div class="no-plan-visual">
+              <div class="pulse-ring"></div>
+              <div class="pulse-ring delay-1"></div>
+              <div class="pulse-ring delay-2"></div>
+              <IconRocket :size="40" class="rocket-icon"/>
+            </div>
+            <div class="no-plan-text">
+              <h3>{{ $t('dashboard.noPlanPrompt') }}</h3>
+              <p>{{ $t('dashboard.welcomeDesc') }}</p>
+            </div>
+            <div class="no-plan-actions">
+              <button class="cta-btn primary" @click="goToShop">
+                <IconShoppingBag :size="20"/>
+                <span>{{ $t('dashboard.purchasePlan') }}</span>
+              </button>
+              <button class="cta-btn secondary" @click="goToSupport">
+                <IconMessage :size="20"/>
+                <span>{{ $t('dashboard.ticketSupport') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 订阅导入卡片 -->
+          <transition name="slide-fade">
+            <div v-if="showImportCard && userPlan.subscribeUrl" class="import-panel">
+              <div class="import-header">
+                <h3>{{ $t('dashboard.importSubscription') }}</h3>
+                <button class="close-btn" @click="showImportCard = false">
+                  <IconX :size="18"/>
+                </button>
+              </div>
+
+              <!-- 订阅链接显示框 -->
+              <div class="subscribe-url-box">
+                <label class="url-label">{{ $t('dashboard.subscribeUrl') }}</label>
+                <div class="url-input-wrap">
+                  <input 
+                    type="text" 
+                    :value="userPlan.subscribeUrl" 
+                    readonly 
+                    class="url-input"
+                    @focus="$event.target.select()"
+                  />
+                </div>
+                <p class="url-hint">{{ $t('dashboard.subscribeUrlHint') }}</p>
+              </div>
+              
+              <div class="quick-actions">
+                <button class="quick-btn" @click="copySubscription">
+                  <IconCopy :size="20"/>
+                  <span>{{ $t('dashboard.copySubscription') }}</span>
+                </button>
+                <button class="quick-btn" @click="handleShowQrCode">
+                  <IconQrcode :size="20"/>
+                  <span>{{ $t('dashboard.scanQRCode') }}</span>
+                </button>
+              </div>
+
+              <!-- 平台选择器 -->
+              <div class="platform-selector">
+                <button
+                    v-for="platform in platforms"
+                    :key="platform.id"
+                    class="platform-button"
+                    :class="{ 'active': activePlatform === platform.id }"
+                    @click="activePlatform = platform.id"
+                >
+                  <component :is="platform.icon" :size="16"/>
+                  <span>{{ $t(`platforms.${platform.id}`) }}</span>
+                </button>
+              </div>
+
+              <!-- iOS平台选项 -->
+              <div v-if="activePlatform === 'ios'" class="platform-section">
+                <div v-if="hasIOSClients" class="platform-options">
+                  <div v-if="clientConfig.showShadowrocket" class="platform-option" @click="importToClient('shadowrocket')">
+                    <img :src="shadowrocketIcon" class="client-icon" alt="Shadowrocket"/>
+                    <span>Shadowrocket</span>
+                  </div>
+                  <div v-if="clientConfig.showSurge" class="platform-option" @click="importToClient('surge')">
+                    <img :src="surgeIcon" class="client-icon" alt="Surge"/>
+                    <span>Surge</span>
+                  </div>
+                  <div v-if="clientConfig.showStash" class="platform-option" @click="importToClient('stash')">
+                    <img :src="stashIcon" class="client-icon" alt="Stash"/>
+                    <span>Stash</span>
+                  </div>
+                  <div v-if="clientConfig.showQuantumultX" class="platform-option" @click="importToClient('quantumultx')">
+                    <img :src="quantumultIcon" class="client-icon" alt="Quantumult X"/>
+                    <span>Quantumult X</span>
+                  </div>
+                  <div v-if="clientConfig.showHiddifyIOS" class="platform-option" @click="importToClient('hiddify-ios')">
+                    <img :src="hiddifyMacIcon" class="client-icon" alt="Hiddify"/>
+                    <span>Hiddify</span>
+                  </div>
+                  <div v-if="clientConfig.showSingboxIOS" class="platform-option" @click="importToClient('singbox-ios')">
+                    <img :src="singboxIcon" class="client-icon" alt="Singbox"/>
+                    <span>Singbox</span>
+                  </div>
+                  <div v-if="clientConfig.showLoon" class="platform-option" @click="importToClient('loon')">
+                    <img :src="loonIcon" class="client-icon" alt="Loon"/>
+                    <span>Loon</span>
+                  </div>
+                </div>
+                <div v-else class="no-clients-message">
+                  <p>{{ $t('dashboard.noClientsAvailable') }}</p>
+                </div>
+              </div>
+
+              <!-- Android平台选项 -->
+              <div v-if="activePlatform === 'android'" class="platform-section">
+                <div v-if="hasAndroidClients" class="platform-options">
+                  <div v-if="clientConfig.showFlClashAndroid" class="platform-option" @click="importToClient('flclash')">
+                    <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
+                    <span>FlClash</span>
+                  </div>
+                  <div v-if="clientConfig.showV2rayNG" class="platform-option" @click="importToClient('v2rayng')">
+                    <img :src="v2rayNGIcon" class="client-icon" alt="V2rayNG"/>
+                    <span>V2rayNG</span>
+                  </div>
+                  <div v-if="clientConfig.showClashAndroid" class="platform-option" @click="importToClient('clash-android')">
+                    <img :src="clashAndroidIcon" class="client-icon" alt="Clash"/>
+                    <span>Clash</span>
+                  </div>
+                  <div v-if="clientConfig.showSurfboard" class="platform-option" @click="importToClient('surfboard')">
+                    <img :src="surfboardIcon" class="client-icon" alt="Surfboard"/>
+                    <span>Surfboard</span>
+                  </div>
+                  <div v-if="clientConfig.showClashMetaAndroid" class="platform-option" @click="importToClient('clash-meta-android')">
+                    <img :src="clashMetaAndroidIcon" class="client-icon" alt="Clash Meta"/>
+                    <span>Clash Meta</span>
+                  </div>
+                  <div v-if="clientConfig.showNekobox" class="platform-option" @click="importToClient('nekobox')">
+                    <img :src="nekoboxIcon" class="client-icon" alt="Nekobox"/>
+                    <span>Nekobox</span>
+                  </div>
+                  <div v-if="clientConfig.showSingboxAndroid" class="platform-option" @click="importToClient('singbox-android')">
+                    <img :src="singboxAndroidIcon" class="client-icon" alt="Singbox"/>
+                    <span>Singbox</span>
+                  </div>
+                  <div v-if="clientConfig.showHiddifyAndroid" class="platform-option" @click="importToClient('hiddify-android')">
+                    <img :src="hiddifyAndroidIcon" class="client-icon" alt="Hiddify"/>
+                    <span>Hiddify</span>
+                  </div>
+                </div>
+                <div v-else class="no-clients-message">
+                  <p>{{ $t('dashboard.noClientsAvailable') }}</p>
+                </div>
+              </div>
+
+              <!-- Windows平台选项 -->
+              <div v-if="activePlatform === 'windows'" class="platform-section">
+                <div v-if="hasWindowsClients" class="platform-options">
+                  <div v-if="clientConfig.showFlClashWindows" class="platform-option" @click="importToClient('flclash')">
+                    <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
+                    <span>FlClash</span>
+                  </div>
+                  <div v-if="clientConfig.showClashVergeWindows" class="platform-option" @click="importToClient('clashverge')">
+                    <img :src="clashvergeIcon" class="client-icon" alt="ClashVerge"/>
+                    <span>ClashVerge</span>
+                  </div>
+                  <div v-if="clientConfig.showClashWindows" class="platform-option" @click="importToClient('clash')">
+                    <img :src="clashWindowsIcon" class="client-icon" alt="Clash"/>
+                    <span>Clash</span>
+                  </div>
+                  <div v-if="clientConfig.showNekoray" class="platform-option" @click="importToClient('nekoray')">
+                    <img :src="nekorayIcon" class="client-icon" alt="Nekoray"/>
+                    <span>Nekoray</span>
+                  </div>
+                  <div v-if="clientConfig.showSingboxWindows" class="platform-option" @click="importToClient('singbox-windows')">
+                    <img :src="singboxWindowsIcon" class="client-icon" alt="Singbox"/>
+                    <span>Singbox</span>
+                  </div>
+                  <div v-if="clientConfig.showHiddifyWindows" class="platform-option" @click="importToClient('hiddify-windows')">
+                    <img :src="hiddifyWindowsIcon" class="client-icon" alt="Hiddify"/>
+                    <span>Hiddify</span>
+                  </div>
+                </div>
+                <div v-else class="no-clients-message">
+                  <p>{{ $t('dashboard.noClientsAvailable') }}</p>
+                </div>
+              </div>
+
+              <!-- MacOS平台选项 -->
+              <div v-if="activePlatform === 'macos'" class="platform-section">
+                <div v-if="hasMacOSClients" class="platform-options">
+                  <div v-if="clientConfig.showFlClashMac" class="platform-option" @click="importToClient('flclash')">
+                    <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
+                    <span>FlClash</span>
+                  </div>
+                  <div v-if="clientConfig.showClashVergeMac" class="platform-option" @click="importToClient('clashverge')">
+                    <img :src="clashvergeIcon" class="client-icon" alt="ClashVerge"/>
+                    <span>ClashVerge</span>
+                  </div>
+                  <div v-if="clientConfig.showClashX" class="platform-option" @click="importToClient('clashx')">
+                    <img :src="clashXIcon" class="client-icon" alt="ClashX"/>
+                    <span>ClashX</span>
+                  </div>
+                  <div v-if="clientConfig.showClashMetaX" class="platform-option" @click="importToClient('clashx-meta')">
+                    <img :src="clashMetaXIcon" class="client-icon" alt="ClashX Meta"/>
+                    <span>ClashX Meta</span>
+                  </div>
+                  <div v-if="clientConfig.showSurgeMac" class="platform-option" @click="importToClient('surge-mac')">
+                    <img :src="surgeMacIcon" class="client-icon" alt="Surge"/>
+                    <span>Surge</span>
+                  </div>
+                  <div v-if="clientConfig.showStashMac" class="platform-option" @click="importToClient('stash-mac')">
+                    <img :src="stashMacIcon" class="client-icon" alt="Stash"/>
+                    <span>Stash</span>
+                  </div>
+                  <div v-if="clientConfig.showQuantumultXMac" class="platform-option" @click="importToClient('quantumultx-mac')">
+                    <img :src="quantumultXMacIcon" class="client-icon" alt="Quantumult X"/>
+                    <span>Quantumult X</span>
+                  </div>
+                  <div v-if="clientConfig.showSingboxMac" class="platform-option" @click="importToClient('singbox-macos')">
+                    <img :src="singboxMacIcon" class="client-icon" alt="Singbox"/>
+                    <span>Singbox</span>
+                  </div>
+                  <div v-if="clientConfig.showHiddifyMac" class="platform-option" @click="importToClient('hiddify-macos')">
+                    <img :src="hiddifyMacIcon" class="client-icon" alt="Hiddify"/>
+                    <span>Hiddify</span>
+                  </div>
+                </div>
+                <div v-else class="no-clients-message">
+                  <p>{{ $t('dashboard.noClientsAvailable') }}</p>
                 </div>
               </div>
             </div>
           </transition>
-          <!-- 轮播指示点 -->
-          <div v-if="notices.data.length > 1" class="carousel-indicators">
-            <button
-              v-for="(notice, index) in notices.data"
-              :key="notice.id"
-              class="indicator-dot"
-              :class="{ 'active': index === currentNoticeIndex }"
-              @click="goToNotice(index)"
-              :title="`${$t('common.goToNotice')} ${index + 1}`">
-            </button>
+        </div>
+
+        <!-- 右栏：公告和下载 -->
+        <div class="right-column">
+          
+          <!-- 公告卡片 - 紧凑设计 (桌面端显示) -->
+          <div class="notice-compact desktop-only" v-if="notices && notices.data && notices.data.length > 0" :class="{'card-animate': !loading.notices}">
+            <div class="notice-header">
+              <div class="notice-title-row">
+                <IconBell :size="18"/>
+                <span>{{ $t('dashboard.siteAnnouncement') }}</span>
+              </div>
+              <div class="notice-nav-mini">
+                <button @click="prevNotice" :disabled="currentNoticeIndex <= 0"><IconChevronLeft :size="14"/></button>
+                <span class="notice-count">{{ currentNoticeIndex + 1 }}/{{ notices.data.length }}</span>
+                <button @click="nextNotice" :disabled="currentNoticeIndex >= notices.data.length - 1"><IconChevronRight :size="14"/></button>
+              </div>
+            </div>
+            <div class="notice-body" @click="showNoticeModal">
+              <transition name="fade-slide" mode="out-in">
+                <div class="notice-text" :key="currentNoticeIndex">
+                  <strong>{{ notices.data[currentNoticeIndex].title }}</strong>
+                  <span class="notice-date">{{ formatDate(notices.data[currentNoticeIndex].created_at) }}</span>
+                </div>
+              </transition>
+            </div>
           </div>
+
+          <!-- 官方客户端下载 - 紧凑设计 -->
+          <div class="download-compact" v-if="clientConfig.showDownloadCard" :class="{'card-animate': !loading.userInfo}">
+            <div class="download-header">
+              <IconDownload :size="18"/>
+              <span>{{ $t('dashboard.officialClients') }}</span>
+            </div>
+            <div class="download-grid">
+              <div class="download-item" v-if="clientConfig.showIOS" @click="downloadClient('ios')">
+                <IconBrandApple :size="24"/>
+                <span>iOS</span>
+              </div>
+              <div class="download-item" v-if="clientConfig.showAndroid" @click="downloadClient('android')">
+                <IconBrandAndroid :size="24"/>
+                <span>Android</span>
+              </div>
+              <div class="download-item" v-if="clientConfig.showMacOS" @click="downloadClient('macos')">
+                <IconBrandFinder :size="24"/>
+                <span>Mac</span>
+              </div>
+              <div class="download-item" v-if="clientConfig.showWindows" @click="downloadClient('windows')">
+                <IconBrandWindows :size="24"/>
+                <span>Win</span>
+              </div>
+              <div class="download-item" v-if="clientConfig.showLinux" @click="downloadClient('linux')">
+                <IconBrandDebian :size="24"/>
+                <span>Linux</span>
+              </div>
+              <div class="download-item" v-if="clientConfig.showOpenWrt" @click="downloadClient('openwrt')">
+                <IconRouter :size="24"/>
+                <span>Router</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
+
+      <!-- QR码模态窗口 -->
+      <transition name="fade">
+        <div v-if="showQrCode" class="qrcode-modal-overlay" @click="showQrCode = false">
+          <div class="qrcode-modal" @click.stop>
+            <div class="qrcode-header">
+              <h3>{{ $t('dashboard.scanQRCode') }}</h3>
+              <button class="close-btn" @click="showQrCode = false">
+                <span class="close-icon"></span>
+              </button>
+            </div>
+            <div class="qrcode-content">
+              <div v-if="qrCodeLoading" class="qrcode-loading">
+                <div class="loading-spinner"></div>
+                <p>{{ $t('common.loadingQRCode') }}</p>
+              </div>
+              <img v-else :src="qrCodeUrl" alt="QR Code" @load="qrCodeLoaded"/>
+            </div>
+          </div>
+        </div>
+      </transition>
 
       <!-- 公告弹窗 -->
       <transition name="fade">
@@ -142,508 +509,8 @@
         </div>
       </transition>
 
-      <!-- 套餐信息卡片 -->
-      <div v-if="hasPlan" class="dashboard-card subscription-card" :class="{'card-animate': !loading.userInfo}"
-           style="animation-delay: 0.3s">
-        <div v-if="loading.userInfo" class="skeleton-card">
-          <div class="skeleton-header"></div>
-          <div class="skeleton-body">
-            <div class="skeleton-row"></div>
-            <div class="skeleton-row"></div>
-            <div class="skeleton-row"></div>
-          </div>
-        </div>
-        <template v-else>
-          <div class="card-header">
-            <h2 class="card-title">{{ $t('dashboard.subscriptionInfo') }}</h2>
-          </div>
-          <div class="card-body">
-            <div class="subscription-info">
-              <div class="info-item">
-                <span class="info-label">{{ $t('dashboard.planName') }}</span>
-                <span class="info-value">{{ userPlan.name || $t('dashboard.noSubscription') }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">{{ $t('dashboard.expiryDate') }}</span>
-                <span class="info-value">
-                  {{
-                    userPlan.isExpireDatePermanent ? $t('dashboard.permanent') : (userPlan.expireDate || $t('dashboard.none'))
-                  }}
-                </span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">{{ $t('dashboard.planTraffic') }}</span>
-                <span class="info-value">{{ userPlan.totalTraffic || '0 GB' }}</span>
-              </div>
-              <!-- 添加下次重置时间，只有当resetDay存在时才显示 -->
-              <div class="info-item" v-if="userPlan.resetDay">
-                <span class="info-label">{{ $t('dashboard.nextResetTime') }}</span>
-                <span class="info-value">{{ userPlan.resetDay }} {{ $t('dashboard.days') }}</span>
-              </div>
-              <!-- 添加在线设备信息，仅当面板类型为 Xiao-board 时显示 -->
-              <div class="info-item" v-if="showDeviceLimit">
-                <span class="info-label">{{ $t('dashboard.deviceLimit') }}</span>
-                <span class="info-value">
-                  {{
-                    userPlan.deviceLimit === null ? `${userPlan.aliveIp} / ${$t('dashboard.unlimited')}` : `${userPlan.aliveIp} / ${userPlan.deviceLimit}`
-                  }}
-                </span>
-              </div>
-            </div>
-            <div class="subscription-actions">
-              <button v-if="showImportSubscription" class="btn-outline" :class="{
-                'btn-active': showImportCard,
-                'btn-highlight-btnbgcolor': DASHBOARD_CONFIG.importButtonHighlightBtnbgcolor
-              }" @click="toggleImportCard">
-                <IconShare :size="16" class="btn-icon"/>
-                <span class="">{{ $t('dashboard.importSubscription') }}</span>
-              </button>
-              <button
-                  v-if="showRenewPlanButton"
-                  class="btn-outline renew-plan-btn"
-                  :class="{
-                  'renew-warning': isExpiringSoon && !isExpired,
-                  'renew-danger': isExpired
-                }"
-                  @click="renewPlan"
-              >
-                <IconShoppingCart :size="16" class="btn-icon"/>
-                <span class="">{{ $t('dashboard.renewPlan') }}</span>
-              </button>
-              <!-- 重置流量按钮 - 根据配置和流量状态显示 -->
-              <button
-                  v-if="showResetTrafficButton"
-                  class="btn-outline reset-traffic-btn"
-                  :class="{
-                  'reset-warning': isLowTraffic && !isTrafficDepleted,
-                  'reset-danger': isTrafficDepleted
-                }"
-                  @click="openResetTrafficModal"
-              >
-                <IconRefresh :size="16" class="btn-icon"/>
-                <span class="">{{ $t('dashboard.resetTraffic') }}</span>
-
-              </button>
-              <button class="btn-outline" v-if="allowNewPeriod==='1'&&showResetTrafficButton" @click="showPopup=true">
-                <IconCalendarPlus :size="16" class="btn-icon"/>
-                <span>{{ $t('dashboard.activateDataCycleInAdvance') }}</span>
-              </button>
-              <button class="btn-outline" @click="goToSupport">
-                <IconMessage :size="16" class="btn-icon"/>
-                <span class="">{{ $t('dashboard.ticketSupport') }}</span>
-              </button>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <!-- 订阅导入卡片 -->
-      <transition name="slide-fade">
-        <div v-if="showImportCard && userPlan.subscribeUrl" class="dashboard-card import-card">
-          <div class="card-header">
-            <h2 class="card-title">{{ $t('dashboard.importSubscription') }}</h2>
-            <button class="close-btn" @click="showImportCard = false">
-              <span class="close-icon"></span>
-            </button>
-          </div>
-          <div class="card-body">
-            <div class="import-action copy-action" @click="copySubscription">
-              <div class="import-icon">
-                <IconCopy :size="24"/>
-              </div>
-              <div class="import-content">
-                <div class="import-title">{{ $t('dashboard.copySubscription') }}</div>
-                <div class="import-desc">{{ userPlan.subscribeUrl }}</div>
-              </div>
-            </div>
-
-            <div class="import-action qrcode-action" @click="handleShowQrCode">
-              <div class="import-icon">
-                <IconQrcode :size="24"/>
-              </div>
-              <div class="import-content">
-                <div class="import-title">{{ $t('dashboard.scanQRCode') }}</div>
-                <div class="import-desc">{{ $t('dashboard.scanQRCodeDesc') }}</div>
-              </div>
-            </div>
-
-            <!-- 平台选择器 -->
-            <div class="platform-selector">
-              <button
-                  v-for="platform in platforms"
-                  :key="platform.id"
-                  class="platform-button"
-                  :class="{ 'active': activePlatform === platform.id }"
-                  @click="activePlatform = platform.id"
-              >
-                <component :is="platform.icon" :size="16"/>
-                <span>{{ $t(`platforms.${platform.id}`) }}</span>
-              </button>
-            </div>
-
-            <!-- iOS平台选项 -->
-            <div v-if="activePlatform === 'ios'" class="platform-section">
-              <div class="platform-title">iOS - 点击下方图标一键导入</div>
-              <div v-if="hasIOSClients" class="platform-options">
-                <div v-if="clientConfig.showShadowrocket" class="platform-option"
-                     @click="importToClient('shadowrocket')">
-                  <img :src="shadowrocketIcon" class="client-icon" alt="Shadowrocket"/>
-                  <span>Shadowrocket</span>
-                </div>
-                <div v-if="clientConfig.showSurge" class="platform-option" @click="importToClient('surge')">
-                  <img :src="surgeIcon" class="client-icon" alt="Surge"/>
-                  <span>Surge</span>
-                </div>
-                <div v-if="clientConfig.showStash" class="platform-option" @click="importToClient('stash')">
-                  <img :src="stashIcon" class="client-icon" alt="Stash"/>
-                  <span>Stash</span>
-                </div>
-                <div v-if="clientConfig.showQuantumultX" class="platform-option" @click="importToClient('quantumultx')">
-                  <img :src="quantumultIcon" class="client-icon" alt="Quantumult X"/>
-                  <span>Quantumult X</span>
-                </div>
-                <div v-if="clientConfig.showHiddifyIOS" class="platform-option" @click="importToClient('hiddify-ios')">
-                  <img :src="hiddifyMacIcon" class="client-icon" alt="Hiddify"/>
-                  <span>Hiddify</span>
-                </div>
-                <div v-if="clientConfig.showSingboxIOS" class="platform-option" @click="importToClient('singbox-ios')">
-                  <img :src="singboxIcon" class="client-icon" alt="Singbox"/>
-                  <span>Singbox</span>
-                </div>
-                <div v-if="clientConfig.showLoon" class="platform-option" @click="importToClient('loon')">
-                  <img :src="loonIcon" class="client-icon" alt="Loon"/>
-                  <span>Loon</span>
-                </div>
-              </div>
-              <div v-else class="no-clients-message">
-                <p>{{ $t('dashboard.noClientsAvailable') }}</p>
-              </div>
-            </div>
-
-            <!-- Android平台选项 -->
-            <div v-if="activePlatform === 'android'" class="platform-section">
-              <div class="platform-title">Android - 点击下方图标一键导入</div>
-              <div v-if="hasAndroidClients" class="platform-options">
-                <div v-if="clientConfig.showFlClashAndroid" class="platform-option" @click="importToClient('flclash')">
-                  <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
-                  <span>FlClash</span>
-                </div>
-                <div v-if="clientConfig.showV2rayNG" class="platform-option" @click="importToClient('v2rayng')">
-                  <img :src="v2rayNGIcon" class="client-icon" alt="V2rayNG"/>
-                  <span>V2rayNG</span>
-                </div>
-                <div v-if="clientConfig.showClashAndroid" class="platform-option"
-                     @click="importToClient('clash-android')">
-                  <img :src="clashAndroidIcon" class="client-icon" alt="Clash"/>
-                  <span>Clash</span>
-                </div>
-                <div v-if="clientConfig.showSurfboard" class="platform-option" @click="importToClient('surfboard')">
-                  <img :src="surfboardIcon" class="client-icon" alt="Surfboard"/>
-                  <span>Surfboard</span>
-                </div>
-                <div v-if="clientConfig.showClashMetaAndroid" class="platform-option"
-                     @click="importToClient('clash-meta-android')">
-                  <img :src="clashMetaAndroidIcon" class="client-icon" alt="Clash Meta"/>
-                  <span>Clash Meta</span>
-                </div>
-                <div v-if="clientConfig.showNekobox" class="platform-option" @click="importToClient('nekobox')">
-                  <img :src="nekoboxIcon" class="client-icon" alt="Nekobox"/>
-                  <span>Nekobox</span>
-                </div>
-                <div v-if="clientConfig.showSingboxAndroid" class="platform-option"
-                     @click="importToClient('singbox-android')">
-                  <img :src="singboxAndroidIcon" class="client-icon" alt="Singbox"/>
-                  <span>Singbox</span>
-                </div>
-                <div v-if="clientConfig.showHiddifyAndroid" class="platform-option"
-                     @click="importToClient('hiddify-android')">
-                  <img :src="hiddifyAndroidIcon" class="client-icon" alt="Hiddify"/>
-                  <span>Hiddify</span>
-                </div>
-              </div>
-              <div v-else class="no-clients-message">
-                <p>{{ $t('dashboard.noClientsAvailable') }}</p>
-              </div>
-            </div>
-
-            <!-- Windows平台选项 -->
-            <div v-if="activePlatform === 'windows'" class="platform-section">
-              <div class="platform-title">Windows - 点击下方图标一键导入</div>
-              <div v-if="hasWindowsClients" class="platform-options">
-                <div v-if="clientConfig.showFlClashWindows" class="platform-option" @click="importToClient('flclash')">
-                  <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
-                  <span>FlClash</span>
-                </div>
-                <div v-if="clientConfig.showClashVergeWindows" class="platform-option" @click="importToClient('clashverge')">
-                  <img :src="clashvergeIcon" class="client-icon" alt="ClashVerge"/>
-                  <span>ClashVerge</span>
-                </div>
-                <div v-if="clientConfig.showClashWindows" class="platform-option" @click="importToClient('clash')">
-                  <img :src="clashWindowsIcon" class="client-icon" alt="Clash"/>
-                  <span>Clash</span>
-                </div>
-                <div v-if="clientConfig.showNekoray" class="platform-option" @click="importToClient('nekoray')">
-                  <img :src="nekorayIcon" class="client-icon" alt="Nekoray"/>
-                  <span>Nekoray</span>
-                </div>
-                <div v-if="clientConfig.showSingboxWindows" class="platform-option"
-                     @click="importToClient('singbox-windows')">
-                  <img :src="singboxWindowsIcon" class="client-icon" alt="Singbox"/>
-                  <span>Singbox</span>
-                </div>
-                <div v-if="clientConfig.showHiddifyWindows" class="platform-option"
-                     @click="importToClient('hiddify-windows')">
-                  <img :src="hiddifyWindowsIcon" class="client-icon" alt="Hiddify"/>
-                  <span>Hiddify</span>
-                </div>
-              </div>
-              <div v-else class="no-clients-message">
-                <p>{{ $t('dashboard.noClientsAvailable') }}</p>
-              </div>
-            </div>
-
-            <!-- MacOS平台选项 -->
-            <div v-if="activePlatform === 'macos'" class="platform-section">
-              <div class="platform-title">MacOS - 点击下方图标一键导入</div>
-              <div v-if="hasMacOSClients" class="platform-options">
-                <div v-if="clientConfig.showFlClashMac" class="platform-option" @click="importToClient('flclash')">
-                  <img :src="flclashIcon" class="client-icon" alt="FlClash"/>
-                  <span>FlClash</span>
-                </div>
-                <div v-if="clientConfig.showClashVergeMac" class="platform-option" @click="importToClient('clashverge')">
-                  <img :src="clashvergeIcon" class="client-icon" alt="ClashVerge"/>
-                  <span>ClashVerge</span>
-                </div>
-                <div v-if="clientConfig.showClashX" class="platform-option" @click="importToClient('clashx')">
-                  <img :src="clashXIcon" class="client-icon" alt="ClashX"/>
-                  <span>ClashX</span>
-                </div>
-                <div v-if="clientConfig.showClashMetaX" class="platform-option" @click="importToClient('clashx-meta')">
-                  <img :src="clashMetaXIcon" class="client-icon" alt="ClashX Meta"/>
-                  <span>ClashX Meta</span>
-                </div>
-                <div v-if="clientConfig.showSurgeMac" class="platform-option" @click="importToClient('surge-mac')">
-                  <img :src="surgeMacIcon" class="client-icon" alt="Surge"/>
-                  <span>Surge</span>
-                </div>
-                <div v-if="clientConfig.showStashMac" class="platform-option" @click="importToClient('stash-mac')">
-                  <img :src="stashMacIcon" class="client-icon" alt="Stash"/>
-                  <span>Stash</span>
-                </div>
-                <div v-if="clientConfig.showQuantumultXMac" class="platform-option"
-                     @click="importToClient('quantumultx-mac')">
-                  <img :src="quantumultXMacIcon" class="client-icon" alt="Quantumult X"/>
-                  <span>Quantumult X</span>
-                </div>
-                <div v-if="clientConfig.showSingboxMac" class="platform-option"
-                     @click="importToClient('singbox-macos')">
-                  <img :src="singboxMacIcon" class="client-icon" alt="Singbox"/>
-                  <span>Singbox</span>
-                </div>
-                <div v-if="clientConfig.showHiddifyMac" class="platform-option"
-                     @click="importToClient('hiddify-macos')">
-                  <img :src="hiddifyMacIcon" class="client-icon" alt="Hiddify"/>
-                  <span>Hiddify</span>
-                </div>
-              </div>
-              <div v-else class="no-clients-message">
-                <p>{{ $t('dashboard.noClientsAvailable') }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </transition>
-
-      <!-- QR码模态窗口 -->
-      <transition name="fade">
-        <div v-if="showQrCode" class="qrcode-modal-overlay" @click="showQrCode = false">
-          <div class="qrcode-modal" @click.stop>
-            <div class="qrcode-header">
-              <h3>{{ $t('dashboard.scanQRCode') }}</h3>
-              <button class="close-btn" @click="showQrCode = false">
-                <span class="close-icon"></span>
-              </button>
-            </div>
-            <div class="qrcode-content">
-              <div v-if="qrCodeLoading" class="qrcode-loading">
-                <div class="loading-spinner"></div>
-                <p>{{ $t('common.loadingQRCode') }}</p>
-              </div>
-              <img v-else :src="qrCodeUrl" alt="QR Code" @load="qrCodeLoaded"/>
-            </div>
-          </div>
-        </div>
-      </transition>
-
-      <div class="stats-grid">
-        <template v-if="loading.userStats">
-          <div v-for="i in 4" :key="i" class="stats-card skeleton-card">
-            <div class="skeleton-icon"></div>
-            <div class="skeleton-content">
-              <div class="skeleton-row-sm"></div>
-              <div class="skeleton-row-xs"></div>
-            </div>
-          </div>
-        </template>
-
-        <template v-else-if="!hasPlan">
-          <!-- 没有套餐时显示的提示卡片 -->
-          <div class="dashboard-card stats-card no-plan-card" :class="{'card-animate': !loading.userStats}"
-               style="animation-delay: 0.5s; grid-column: span 4; margin: 0 auto; max-width: 1200px; width: 100%;">
-            <div class="no-plan-content">
-              <div class="no-plan-icon">
-                <IconShoppingCart :size="45" class="icon-cart"/>
-              </div>
-              <div class="no-plan-message">
-                <div class="no-plan-title">{{ $t('dashboard.noPlanPrompt') }}</div>
-                <div class="no-plan-actions">
-                  <button class="action-button primary" @click="goToShop">
-                    <IconShoppingBag :size="18" class="btn-icon"/>
-                    <span>{{ $t('dashboard.purchasePlan') }}</span>
-                  </button>
-                  <button class="action-button secondary" @click="goToSupport">
-                    <IconMessage :size="18" class="btn-icon"/>
-                    <span>{{ $t('dashboard.ticketSupport') }}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <template v-else>
-          <div class="stats-card"
-               :class="{
-              'card-animate': !loading.userStats,
-              'warning-card': isLowTraffic && !isTrafficDepleted,
-              'danger-card': isTrafficDepleted
-            }"
-               style="animation-delay: 0.5s">
-            <div class="stats-icon">
-              <IconTransferVertical :size="32"/>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ userStats.remainingTraffic }}</div>
-              <div class="stats-label">{{ $t('dashboard.remainingTraffic') }}</div>
-            </div>
-
-            <!-- 水流进度条效果 -->
-            <div class="water-container">
-              <div class="water-progress"
-                   :class="{'animate-water': waterAnimationState.canAnimate}"
-                   :style="{ height: waterAnimationState.canAnimate ? `${trafficPercentage}%` : '0%' }">
-              </div>
-            </div>
-          </div>
-
-          <div class="stats-card"
-               :class="{
-              'card-animate': !loading.userStats,
-              'warning-card': isExpiringSoon && !isExpired,
-              'danger-card': isExpired
-            }"
-               style="animation-delay: 0.6s">
-            <div class="stats-icon">
-              <IconCalendar :size="32"/>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">
-                {{
-                  userStats.isRemainingDaysPermanent ? $t('dashboard.permanent') : userStats.remainingDays + $t('dashboard.days')
-                }}
-              </div>
-              <div class="stats-label">{{ $t('dashboard.remainingDays') }}</div>
-            </div>
-          </div>
-
-          <div class="stats-card"
-               :class="{'card-animate': !loading.userStats, 'balance-card': true, 'clickable': isXiaoPanel}"
-               style="animation-delay: 0.7s"
-               @click="isXiaoPanel ? navigateToDeposit() : null"
-               :style="isXiaoPanel ? { cursor: 'pointer' } : {}">
-            <div class="stats-icon">
-              <IconWallet :size="32"/>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ userStats.accountBalance }}</div>
-              <div class="stats-label">{{ $t('dashboard.accountBalance') }}</div>
-            </div>
-            <div v-if="isXiaoPanel" class="chevron-icon">
-              <IconChevronRight :size="20"/>
-            </div>
-          </div>
-
-          <div class="stats-card doc-card"
-               :class="{'card-animate': !loading.userStats}"
-               @click="openDocumentation"
-               style="animation-delay: 0.8s">
-            <div class="stats-icon">
-              <IconFileText :size="32"/>
-            </div>
-            <div class="stats-info">
-              <div class="stats-value">{{ $t('dashboard.viewHelp') }}</div>
-              <div class="stats-label">{{ $t('dashboard.documentation') }}</div>
-            </div>
-            <div class="chevron-icon">
-              <IconChevronRight :size="20"/>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <!-- 官方客户端下载区域 -->
-      <div class="dashboard-card download-card" :class="{'card-animate': !loading.userInfo}"
-           v-if="clientConfig.showDownloadCard" style="animation-delay: 0.9s">
-        <div class="card-header">
-          <h2 class="card-title">{{ $t('dashboard.officialClients') }}</h2>
-        </div>
-        <div class="card-body">
-          <div class="download-options">
-            <div class="download-option" v-if="clientConfig.showIOS" @click="downloadClient('ios')">
-              <div class="option-icon ios">
-                <IconBrandApple :size="32"/>
-              </div>
-              <div class="option-name">iOS</div>
-            </div>
-
-            <div class="download-option" v-if="clientConfig.showAndroid" @click="downloadClient('android')">
-              <div class="option-icon android">
-                <IconBrandAndroid :size="32"/>
-              </div>
-              <div class="option-name">Android</div>
-            </div>
-
-            <div class="download-option" v-if="clientConfig.showMacOS" @click="downloadClient('macos')">
-              <div class="option-icon macos">
-                <IconBrandFinder :size="32"/>
-              </div>
-              <div class="option-name">MacOS</div>
-            </div>
-
-            <div class="download-option" v-if="clientConfig.showWindows" @click="downloadClient('windows')">
-              <div class="option-icon windows">
-                <IconBrandWindows :size="32"/>
-              </div>
-              <div class="option-name">Windows</div>
-            </div>
-
-            <div class="download-option" v-if="clientConfig.showLinux" @click="downloadClient('linux')">
-              <div class="option-icon linux">
-                <IconBrandDebian :size="32"/>
-              </div>
-              <div class="option-name">Linux</div>
-            </div>
-
-            <div class="download-option" v-if="clientConfig.showOpenWrt" @click="downloadClient('openwrt')">
-              <div class="option-icon openwrt">
-                <IconRouter :size="32"/>
-              </div>
-              <div class="option-name">OpenWrt</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+    
     <!-- 弹窗组件 -->
     <CommonDialog
         :show-dialog="showPopup"
@@ -654,7 +521,6 @@
         @close="handlePopupClose"
         @confirm="handlePopupConfirm"
     />
-
   </div>
 
   <!-- 重置流量确认弹窗 -->
@@ -689,16 +555,12 @@
                 </span>
               </template>
               <template v-else>
-                {{
-                  resetConfirmCooldown > 0 ? `${$t('common.confirm')} (${resetConfirmCooldown})` : $t('common.confirm')
-                }}
+                {{ resetConfirmCooldown > 0 ? `${$t('common.confirm')} (${resetConfirmCooldown})` : $t('common.confirm') }}
               </template>
             </button>
           </div>
         </div>
       </div>
-
-
     </div>
   </transition>
 
@@ -723,6 +585,7 @@ import {useI18n} from 'vue-i18n';
 import {CLIENT_CONFIG, DASHBOARD_CONFIG, isXiaoV2board, SITE_CONFIG} from '@/utils/baseConfig';
 import {
   IconAlertTriangle,
+  IconBell,
   IconBox,
   IconBrandAndroid,
   IconBrandApple,
@@ -738,6 +601,7 @@ import {
   IconCopy,
   IconCrosshair,
   IconDeviceDesktop,
+  IconDownload,
   IconEye,
   IconEyeOff,
   IconFileText,
@@ -762,10 +626,12 @@ import {
   IconWaveSawTool,
   IconWaveSine,
   IconX,
-  IconCalendarPlus
+  IconCalendarPlus,
+  IconGift
 } from '@tabler/icons-vue';
 import CommonDialog from '@/components/popup/CommonDialog.vue';
 import {getNotices, getSubscribe, getUserConfig, getUserInfo, getUserStats, setNextPeriod} from '@/api/dashboard';
+import {getInviteData} from '@/api/invite';
 import {useToast} from '@/composables/useToast';
 import {submitOrder} from '@/api/shop';
 import MarkdownIt from 'markdown-it';
@@ -838,7 +704,9 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 export default {
   name: 'UserDashboard',
   components: {
+    IconBell,
     IconBox,
+    IconDownload,
     IconSend,
     IconCalendar,
     IconUserPlus,
@@ -879,6 +747,7 @@ export default {
     IconCalendarPlus,
     IconPlayerPause,
     IconPlayerPlay,
+    IconGift,
     CommonDialog
   },
   setup() {
@@ -931,6 +800,7 @@ export default {
       remainingTraffic: '',
       remainingDays: '',
       accountBalance: '0.00',
+      commissionBalance: '0.00',
       pendingOrders: 0,
       pendingTickets: 0,
       userEmail: '',
@@ -1170,6 +1040,18 @@ export default {
         console.error('获取用户信息失败:', error);
       } finally {
         loading.userInfo = false;
+      }
+    };
+
+    // 获取佣金余额
+    const fetchCommissionBalance = async () => {
+      try {
+        const res = await getInviteData();
+        if (res.data && res.data.stat) {
+          userStats.commissionBalance = ((res.data.stat[4] || 0) / 100).toFixed(2);
+        }
+      } catch (error) {
+        console.error('获取佣金余额失败:', error);
       }
     };
 
@@ -1794,6 +1676,8 @@ export default {
 
       fetchUserStats();
 
+      fetchCommissionBalance();
+
       updateQRCodeUrl();
 
       // 启动公告轮播
@@ -2081,10 +1965,1299 @@ export default {
   padding: 20px;
   display: flex;
   justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba(var(--theme-color-rgb), 0.02) 0%, transparent 50%);
 
   .dashboard-inner {
     width: 100%;
     max-width: 1200px;
+  }
+
+  // ===== 动画 =====
+  .card-animate {
+    animation: cardSlideUp 0.5s ease-out;
+  }
+
+  @keyframes cardSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // ===== Hero Section - 英雄区 =====
+  .hero-section {
+    background: linear-gradient(135deg, var(--card-bg-color) 0%, rgba(var(--theme-color-rgb), 0.08) 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(var(--theme-color-rgb), 0.15);
+    position: relative;
+    overflow: hidden;
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .hero-welcome {
+      flex: 1;
+      min-width: 280px;
+      
+      .hero-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        background: linear-gradient(135deg, var(--text-color) 0%, var(--theme-color) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+
+        .emoji {
+          font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif !important;
+          background: none !important;
+          background-clip: border-box !important;
+          -webkit-background-clip: border-box !important;
+          -webkit-text-fill-color: initial !important;
+          color: initial !important;
+          font-style: normal;
+          display: inline-block;
+        }
+      }
+
+      .hero-desc {
+        font-size: 15px;
+        color: var(--secondary-text-color);
+        margin: 0;
+      }
+
+      .hero-email {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--secondary-text-color);
+        opacity: 0.8;
+      }
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      background: var(--card-bg-color);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      min-width: 180px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(var(--theme-color-rgb), 0.15);
+      }
+
+      &.clickable {
+        cursor: pointer;
+      }
+
+      &.stat-warning {
+        border-color: #ff9800;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.08) 0%, transparent 100%);
+        
+        .stat-circle .circle-fill { stroke: #ff9800; }
+        .stat-icon { color: #ff9800; }
+      }
+
+      &.stat-danger {
+        border-color: #f44336;
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.08) 0%, transparent 100%);
+        
+        .stat-circle .circle-fill { stroke: #f44336; }
+        .stat-icon { color: #f44336; }
+      }
+
+      .stat-circle {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // 佣金特殊颜色
+        &.commission {
+          background: linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(156, 39, 176, 0.05) 100%);
+          border-radius: 12px;
+
+          .stat-icon {
+            color: #9c27b0;
+          }
+        }
+
+        .circular-chart {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+        }
+
+        .circle-bg {
+          fill: none;
+          stroke: rgba(var(--theme-color-rgb), 0.15);
+          stroke-width: 3;
+        }
+
+        .circle-fill {
+          fill: none;
+          stroke: var(--theme-color);
+          stroke-width: 3;
+          stroke-linecap: round;
+          transform: rotate(-90deg);
+          transform-origin: 50% 50%;
+          transition: stroke-dasharray 0.6s ease;
+        }
+
+        .stat-icon {
+          color: var(--theme-color);
+          z-index: 1;
+
+          &.solo {
+            position: static;
+          }
+        }
+      }
+
+      .stat-info {
+        display: flex;
+        flex-direction: column;
+
+        .stat-value {
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--text-color);
+        }
+
+        .stat-label {
+          font-size: 12px;
+          color: var(--secondary-text-color);
+          margin-top: 2px;
+        }
+      }
+    }
+
+    .hero-decoration {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      pointer-events: none;
+      overflow: hidden;
+
+      .deco-shape {
+        position: absolute;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.1) 0%, transparent 70%);
+
+        &.shape-1 {
+          width: 300px;
+          height: 300px;
+          top: -150px;
+          right: -100px;
+        }
+
+        &.shape-2 {
+          width: 200px;
+          height: 200px;
+          bottom: -100px;
+          left: 10%;
+        }
+
+        &.shape-3 {
+          width: 150px;
+          height: 150px;
+          top: 50%;
+          right: 30%;
+        }
+      }
+    }
+  }
+
+  // ===== 主内容网格布局 =====
+  .main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  // ===== 待处理事项横条 =====
+  .pending-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .pending-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 152, 0, 0.05) 100%);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 10px;
+      color: #ff9800;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  // ===== 套餐卡片 =====
+  .plan-card {
+    background: var(--card-bg-color);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(var(--theme-color-rgb), 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+
+      .plan-name-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-color);
+
+        svg {
+          color: var(--theme-color);
+        }
+      }
+
+      .plan-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+
+        &.expired {
+          background: linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(244, 67, 54, 0.05) 100%);
+          color: #f44336;
+          border-color: rgba(244, 67, 54, 0.3);
+        }
+
+        &.expiring {
+          background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.05) 100%);
+          color: #ff9800;
+          border-color: rgba(255, 152, 0, 0.3);
+        }
+      }
+    }
+
+    .plan-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: rgba(var(--theme-color-rgb), 0.03);
+        border-radius: 10px;
+
+        .detail-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: var(--secondary-text-color);
+
+          svg {
+            color: var(--theme-color);
+          }
+        }
+
+        .detail-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-color);
+        }
+      }
+    }
+
+    .plan-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      .btn-text-mobile {
+        display: none;
+      }
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: var(--theme-color);
+          color: var(--theme-color);
+          background: rgba(var(--theme-color-rgb), 0.05);
+        }
+
+        &.primary {
+          background: var(--theme-color);
+          border-color: var(--theme-color);
+          color: #fff;
+
+          &:hover {
+            background: rgba(var(--theme-color-rgb), 0.9);
+          }
+
+          &.btn-active {
+            background: rgba(var(--theme-color-rgb), 0.2);
+            color: var(--theme-color);
+          }
+        }
+
+        &.warning {
+          border-color: #ff9800;
+          color: #ff9800;
+
+          &:hover {
+            background: rgba(255, 152, 0, 0.1);
+          }
+        }
+
+        &.danger {
+          border-color: #f44336;
+          color: #f44336;
+
+          &:hover {
+            background: rgba(244, 67, 54, 0.1);
+          }
+        }
+
+        // 工单支持按钮特殊样式
+        &.support-btn {
+          border-color: rgba(var(--theme-color-rgb), 0.3);
+          color: var(--theme-color);
+          background: rgba(var(--theme-color-rgb), 0.05);
+        }
+      }
+    }
+  }
+
+  // ===== 无套餐卡片 =====
+  .no-plan-card {
+    background: var(--card-bg-color);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 48px 32px;
+    text-align: center;
+
+    .no-plan-visual {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+
+      .pulse-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid rgba(var(--theme-color-rgb), 0.3);
+        animation: pulseRing 2s ease-out infinite;
+
+        &.delay-1 { animation-delay: 0.5s; }
+        &.delay-2 { animation-delay: 1s; }
+      }
+
+      .rocket-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--theme-color);
+      }
+    }
+
+    @keyframes pulseRing {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    .no-plan-text {
+      margin-bottom: 28px;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0 0 8px 0;
+      }
+
+      p {
+        font-size: 14px;
+        color: var(--secondary-text-color);
+        margin: 0;
+      }
+    }
+
+    .no-plan-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      .cta-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &.primary {
+          background: linear-gradient(135deg, var(--theme-color) 0%, rgba(var(--theme-color-rgb), 0.8) 100%);
+          border: none;
+          color: #fff;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(var(--theme-color-rgb), 0.3);
+          }
+        }
+
+        &.secondary {
+          background: transparent;
+          border: 1px solid var(--border-color);
+          color: var(--text-color);
+
+          &:hover {
+            border-color: var(--theme-color);
+            color: var(--theme-color);
+          }
+        }
+      }
+    }
+  }
+
+  // ===== 导入订阅面板 =====
+  .import-panel {
+    background: var(--card-bg-color);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 24px;
+
+    .import-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(var(--theme-color-rgb), 0.1);
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(244, 67, 54, 0.1);
+          color: #f44336;
+        }
+      }
+    }
+
+    // 订阅链接显示框
+    .subscribe-url-box {
+      margin-bottom: 20px;
+      
+      .url-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+        margin-bottom: 8px;
+      }
+
+      .url-input-wrap {
+        position: relative;
+      }
+
+      .url-input {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(var(--theme-color-rgb), 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 13px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        color: var(--text-color);
+        outline: none;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+
+        &:focus {
+          border-color: var(--theme-color);
+          background: rgba(var(--theme-color-rgb), 0.05);
+        }
+      }
+
+      .url-hint {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        margin: 8px 0 0 0;
+        opacity: 0.8;
+      }
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+
+      .quick-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px;
+        background: rgba(var(--theme-color-rgb), 0.08);
+        border: 1px solid rgba(var(--theme-color-rgb), 0.2);
+        border-radius: 12px;
+        color: var(--theme-color);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(var(--theme-color-rgb), 0.15);
+          transform: translateY(-2px);
+        }
+      }
+    }
+
+    .platform-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+
+      .platform-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        svg {
+          color: inherit;
+          transition: color 0.3s ease;
+        }
+
+        &:hover {
+          border-color: var(--theme-color);
+          color: var(--theme-color);
+        }
+
+        &.active {
+          background: var(--theme-color);
+          border-color: var(--theme-color);
+          color: #fff;
+
+          svg {
+            color: #fff;
+          }
+        }
+      }
+    }
+
+    .platform-section {
+      .platform-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 12px;
+
+        .platform-option {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 16px 12px;
+          background: rgba(var(--theme-color-rgb), 0.03);
+          border: 1px solid transparent;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: rgba(var(--theme-color-rgb), 0.08);
+            border-color: rgba(var(--theme-color-rgb), 0.2);
+            transform: translateY(-2px);
+          }
+
+          .client-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+          }
+
+          span {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-color);
+          }
+        }
+      }
+
+      .no-clients-message {
+        padding: 24px;
+        text-align: center;
+        color: var(--secondary-text-color);
+        font-size: 14px;
+      }
+    }
+  }
+
+  // ===== 右栏公告紧凑版 =====
+  .notice-compact {
+    background: var(--card-bg-color);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+
+    .notice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(var(--theme-color-rgb), 0.05);
+      border-bottom: 1px solid var(--border-color);
+
+      .notice-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+
+        svg {
+          color: var(--theme-color);
+        }
+      }
+
+      .notice-nav-mini {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        button {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          border: none;
+          background: rgba(var(--theme-color-rgb), 0.1);
+          color: var(--theme-color);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+
+          &:hover:not(:disabled) {
+            background: var(--theme-color);
+            color: #fff;
+          }
+
+          &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
+        }
+
+        .notice-count {
+          font-size: 12px;
+          color: var(--secondary-text-color);
+          min-width: 32px;
+          text-align: center;
+        }
+      }
+    }
+
+    .notice-body {
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: rgba(var(--theme-color-rgb), 0.03);
+      }
+
+      .notice-text {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        strong {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-color);
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .notice-date {
+          font-size: 12px;
+          color: var(--secondary-text-color);
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+
+  // ===== 下载区域紧凑版 =====
+  .download-compact {
+    background: var(--card-bg-color);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+
+    .download-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 14px;
+
+      svg {
+        color: var(--theme-color);
+      }
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+
+      .download-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        background: rgba(var(--theme-color-rgb), 0.04);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        svg {
+          color: var(--theme-color);
+        }
+
+        span {
+          font-size: 11px;
+          font-weight: 500;
+          color: var(--text-color);
+        }
+
+        &:hover {
+          background: rgba(var(--theme-color-rgb), 0.12);
+          transform: translateY(-2px);
+        }
+      }
+    }
+  }
+
+  // ===== 过渡动画 =====
+  .slide-fade-enter-active,
+  .slide-fade-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  .slide-fade-enter-from,
+  .slide-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition: all 0.25s ease;
+  }
+
+  .fade-slide-enter-from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  // ===== 响应式 =====
+  
+  // 移动端公告 - 默认隐藏
+  .mobile-notice {
+    display: none;
+  }
+
+  // 桌面端显示控制
+  .desktop-only {
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    // 移动端显示公告
+    .mobile-notice {
+      display: block;
+      background: var(--card-bg-color);
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      margin-bottom: 20px;
+
+      .notice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: rgba(var(--theme-color-rgb), 0.05);
+        border-bottom: 1px solid var(--border-color);
+
+        .notice-title-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-color);
+
+          svg {
+            color: var(--theme-color);
+          }
+        }
+
+        .notice-nav-mini {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          button {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(var(--theme-color-rgb), 0.1);
+            color: var(--theme-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+
+            &:hover:not(:disabled) {
+              background: var(--theme-color);
+              color: #fff;
+            }
+
+            &:disabled {
+              opacity: 0.4;
+              cursor: not-allowed;
+            }
+          }
+
+          .notice-count {
+            font-size: 12px;
+            color: var(--secondary-text-color);
+            min-width: 32px;
+            text-align: center;
+          }
+        }
+      }
+
+      .notice-body {
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: rgba(var(--theme-color-rgb), 0.03);
+        }
+
+        .notice-text {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+
+          strong {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .notice-date {
+            font-size: 12px;
+            color: var(--secondary-text-color);
+            white-space: nowrap;
+          }
+        }
+      }
+    }
+
+    // 桌面端公告在移动端隐藏
+    .desktop-only {
+      display: none !important;
+    }
+
+    // 右栏在移动端变为客户端下载区
+    .right-column {
+      order: 2;
+    }
+
+    .left-column {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .hero-section {
+      padding: 24px 20px;
+
+      .hero-welcome .hero-title {
+        font-size: 22px;
+      }
+
+      .hero-stats {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-stat-item {
+        min-width: 140px;
+        flex: 1;
+        padding: 12px 14px;
+
+        .stat-info {
+          .stat-value {
+            font-size: 15px;
+          }
+          .stat-label {
+            font-size: 11px;
+          }
+        }
+      }
+    }
+
+    .plan-card {
+      padding: 20px;
+
+      .plan-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+
+        .plan-status {
+          padding: 8px 16px;
+          font-size: 13px;
+          border-radius: 8px;
+          width: 100%;
+          text-align: center;
+          
+          // 正常状态 - 绿色
+          background: rgba(76, 175, 80, 0.1);
+          border: 1px solid #4caf50;
+          
+          &.expired {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: #f44336;
+          }
+
+          &.expiring {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: #ff9800;
+          }
+        }
+      }
+
+      .plan-details {
+        grid-template-columns: 1fr;
+      }
+
+      .plan-actions {
+        flex-direction: column;
+        gap: 12px;
+
+        // 移动端显示按钮文字
+        .btn-text-mobile {
+          display: inline;
+        }
+
+        .action-btn {
+          justify-content: center;
+          width: 100%;
+          padding: 14px 18px;
+
+          // 工单支持按钮在移动端更突出 - 绿色边框
+          &.support-btn {
+            background: rgba(76, 175, 80, 0.08);
+            border: 2px solid #4caf50;
+            color: #4caf50;
+            font-weight: 600;
+
+            &:hover {
+              background: rgba(76, 175, 80, 0.15);
+            }
+          }
+        }
+      }
+    }
+
+    .no-plan-card {
+      padding: 32px 20px;
+
+      .no-plan-actions {
+        flex-direction: column;
+        width: 100%;
+
+        .cta-btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+
+    .import-panel {
+      padding: 20px;
+
+      .quick-actions {
+        flex-direction: column;
+
+        .quick-btn {
+          width: 100%;
+        }
+      }
+
+      .platform-selector {
+        justify-content: center;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+
+    .hero-section {
+      padding: 20px 16px;
+      border-radius: 16px;
+
+      .hero-welcome {
+        .hero-title {
+          font-size: 20px;
+        }
+        .hero-desc {
+          font-size: 13px;
+        }
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 12px;
+
+        .hero-stat-item {
+          width: 100%;
+          min-width: unset;
+        }
+      }
+    }
+
+    .mobile-notice {
+      border-radius: 12px;
+
+      .notice-header {
+        padding: 12px 14px;
+      }
+
+      .notice-body {
+        padding: 12px 14px;
+
+        .notice-text {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+
+          strong {
+            white-space: normal;
+            line-height: 1.4;
+          }
+        }
+      }
+    }
+
+    .plan-card {
+      border-radius: 14px;
+      padding: 16px;
+
+      .plan-header {
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+
+        .plan-name-badge {
+          font-size: 16px;
+        }
+      }
+
+      .plan-details .detail-row {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .plan-actions .action-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+    }
+
+    .download-compact {
+      border-radius: 12px;
+      padding: 14px;
+
+      .download-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+
+        .download-item {
+          padding: 12px 6px;
+
+          svg {
+            width: 22px;
+            height: 22px;
+          }
+
+          span {
+            font-size: 10px;
+          }
+        }
+      }
+    }
+
+    .pending-bar {
+      flex-direction: column;
+      
+      .pending-tag {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
   }
 
   .welcome-card {
@@ -2162,6 +3335,88 @@ export default {
       }
     }
 
+    // 新增网格布局样式
+    .subscription-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+
+      .info-grid-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.05) 0%, rgba(var(--theme-color-rgb), 0.02) 100%);
+        border-radius: 10px;
+        border: 1px solid rgba(var(--theme-color-rgb), 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.08) 0%, rgba(var(--theme-color-rgb), 0.04) 100%);
+          border-color: rgba(var(--theme-color-rgb), 0.2);
+          transform: translateY(-2px);
+        }
+
+        .info-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, var(--theme-color) 0%, rgba(var(--theme-color-rgb), 0.8) 100%);
+          color: #fff;
+          flex-shrink: 0;
+        }
+
+        .info-content {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+
+          .info-label {
+            font-size: 12px;
+            color: var(--secondary-text-color);
+            margin-bottom: 4px;
+          }
+
+          .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      }
+
+      @media (max-width: 576px) {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+
+        .info-grid-item {
+          padding: 12px;
+          
+          .info-icon {
+            width: 36px;
+            height: 36px;
+          }
+
+          .info-content {
+            .info-value {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 400px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .subscription-actions {
       display: flex;
       gap: 12px;
@@ -2171,6 +3426,18 @@ export default {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: flex-start;
+        gap: 16px;
+
+        .action-group {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          
+          &.primary-actions {
+            padding-right: 16px;
+            border-right: 1px solid var(--border-color);
+          }
+        }
 
         button {
           flex: 0 0 auto;
@@ -2180,7 +3447,19 @@ export default {
 
       @media (max-width: 768px) {
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+
+        .action-group {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          
+          &.primary-actions {
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+          }
+        }
 
         button {
           width: 100%;
@@ -2220,6 +3499,10 @@ export default {
           background-color: rgba(244, 67, 54, 0.1);
         }
       }
+      
+      .btn-primary-action {
+        font-weight: 500;
+      }
     }
   }
 
@@ -2239,16 +3522,29 @@ export default {
 
     .stats-card {
       position: relative;
-      background-color: var(--card-bg-color);
+      background: linear-gradient(135deg, var(--card-bg-color) 0%, rgba(var(--theme-color-rgb), 0.03) 100%);
       border-radius: 16px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 18px;
+      padding: 20px;
       transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
       overflow: hidden;
       border: 1px solid var(--border-color);
+
+      // 装饰性背景圆
+      &::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.1) 0%, rgba(var(--theme-color-rgb), 0.02) 100%);
+        z-index: 0;
+      }
 
       .water-container {
         position: absolute;
@@ -2289,12 +3585,40 @@ export default {
         z-index: 1;
       }
 
-      &.warning-card .water-progress {
-        background-color: rgba(255, 152, 0, 0.15);
+      &.warning-card {
+        background: linear-gradient(135deg, var(--card-bg-color) 0%, rgba(255, 152, 0, 0.05) 100%);
+        border-color: rgba(255, 152, 0, 0.2);
+        
+        &::before {
+          background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.02) 100%);
+        }
+        
+        .water-progress {
+          background-color: rgba(255, 152, 0, 0.15);
+        }
+
+        .stats-icon {
+          background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+          color: #ff9800;
+        }
       }
 
-      &.danger-card .water-progress {
-        background-color: rgba(244, 67, 54, 0.15);
+      &.danger-card {
+        background: linear-gradient(135deg, var(--card-bg-color) 0%, rgba(244, 67, 54, 0.05) 100%);
+        border-color: rgba(244, 67, 54, 0.2);
+        
+        &::before {
+          background: linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(244, 67, 54, 0.02) 100%);
+        }
+        
+        .water-progress {
+          background-color: rgba(244, 67, 54, 0.15);
+        }
+
+        .stats-icon {
+          background: linear-gradient(135deg, rgba(244, 67, 54, 0.2) 0%, rgba(244, 67, 54, 0.1) 100%);
+          color: #f44336;
+        }
       }
 
       @keyframes wave {
@@ -2308,7 +3632,8 @@ export default {
 
       &:hover {
         border-color: rgba(var(--theme-color-rgb), 0.3);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
       }
 
       .stats-icon {
@@ -2317,8 +3642,8 @@ export default {
         justify-content: center;
         width: 60px;
         height: 60px;
-        background-color: rgba(var(--theme-color-rgb), 0.1);
-        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.15) 0%, rgba(var(--theme-color-rgb), 0.08) 100%);
+        border-radius: 14px;
         margin-right: 15px;
         color: var(--theme-color);
       }
@@ -3662,6 +4987,13 @@ export default {
     width: auto;
   }
 
+  .no-plan-subtitle {
+    color: var(--secondary-text-color);
+    font-size: 14px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+
   .no-plan-actions {
     justify-content: flex-start;
     width: auto;
@@ -3671,6 +5003,77 @@ export default {
   .no-plan-actions .action-button {
     width: auto;
     max-width: none;
+  }
+}
+
+// 无套餐卡片视觉装饰
+.no-plan-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-decoration {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    
+    &.circle-1 {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.15) 0%, rgba(var(--theme-color-rgb), 0.05) 100%);
+      animation: pulse-slow 3s ease-in-out infinite;
+    }
+    
+    &.circle-2 {
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.2) 0%, rgba(var(--theme-color-rgb), 0.08) 100%);
+      animation: pulse-slow 3s ease-in-out infinite 0.5s;
+    }
+    
+    &.circle-3 {
+      width: 60%;
+      height: 60%;
+      top: 20%;
+      left: 20%;
+      background: linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.25) 0%, rgba(var(--theme-color-rgb), 0.1) 100%);
+      animation: pulse-slow 3s ease-in-out infinite 1s;
+    }
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@media (max-width: 768px) {
+  .no-plan-subtitle {
+    color: var(--secondary-text-color);
+    font-size: 13px;
+    margin-top: 6px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  
+  .visual-decoration {
+    width: 100px;
+    height: 100px;
   }
 }
 

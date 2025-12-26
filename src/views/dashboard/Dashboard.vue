@@ -16,7 +16,7 @@
           
           <!-- 快捷统计数据 - 嵌入英雄区 -->
           <div class="hero-stats" v-if="hasPlan && !loading.userStats">
-            <div class="hero-stat-item" :class="{'stat-warning': isLowTraffic && !isTrafficDepleted, 'stat-danger': isTrafficDepleted}">
+            <div class="hero-stat-item clickable" :class="{'stat-warning': isLowTraffic && !isTrafficDepleted, 'stat-danger': isTrafficDepleted}" @click="router.push('/trafficlog')">
               <div class="stat-circle">
                 <svg viewBox="0 0 36 36" class="circular-chart">
                   <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
@@ -38,7 +38,7 @@
                 <span class="stat-label">{{ $t('dashboard.remainingDays') }}</span>
               </div>
             </div>
-            <div class="hero-stat-item clickable" @click="isXiaoPanel ? navigateToDeposit() : null">
+            <div class="hero-stat-item clickable" @click="router.push('/profile')">
               <div class="stat-circle">
                 <IconWallet :size="18" class="stat-icon solo"/>
               </div>
@@ -111,7 +111,7 @@
           </div>
 
           <!-- 套餐信息卡片 - 重新设计 -->
-          <div v-if="hasPlan" class="plan-card" :class="{'card-animate': !loading.userInfo}">
+          <div v-if="hasPlan" class="plan-card clickable" :class="{'card-animate': !loading.userInfo}" @click="toggleImportCard">
             <div class="plan-header">
               <div class="plan-name-badge">
                 <IconBox :size="20"/>
@@ -141,12 +141,12 @@
               </div>
             </div>
 
-            <div class="plan-actions">
+            <div class="plan-actions" @click.stop>
               <button v-if="showImportSubscription" class="action-btn primary" :class="{'btn-active': showImportCard}" @click="toggleImportCard">
                 <IconShare :size="18"/>
                 <span>{{ $t('dashboard.importSubscription') }}</span>
               </button>
-              <button v-if="showRenewPlanButton && (isExpiringSoon || isExpired)" class="action-btn" :class="{'warning': isExpiringSoon && !isExpired, 'danger': isExpired}" @click="renewPlan">
+              <button v-if="showRenewPlanButton && isExpired" class="action-btn danger" @click="renewPlan">
                 <IconShoppingCart :size="18"/>
                 <span>{{ $t('dashboard.renewPlan') }}</span>
               </button>
@@ -811,7 +811,7 @@ export default {
     const hasPlan = ref(true);
     const currentNoticeIndex = ref(0);
     const showNoticeDetails = ref(false);
-    const showImportCard = ref(false);
+    const showImportCard = ref(true);
     const showQrCode = ref(false);
     const {showToast} = useToast();
     const qrCodeUrl = ref('');
@@ -2250,6 +2250,10 @@ export default {
     border: 1px solid var(--border-color);
     padding: 24px;
     transition: all 0.3s ease;
+
+    &.clickable {
+      cursor: pointer;
+    }
 
     &:hover {
       border-color: rgba(var(--theme-color-rgb), 0.3);

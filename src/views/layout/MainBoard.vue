@@ -25,6 +25,11 @@
 
       </router-view>
 
+      <!-- 版权信息 -->
+      <div class="copyright-footer">
+        <p>© 2023-2025 All Rights Reserved.</p>
+      </div>
+
     </div>
 
     
@@ -111,6 +116,8 @@ export default {
 
   padding-top: 80px; 
 
+  padding-bottom: 60px;
+
   
 
   @media (min-width: 768px) {
@@ -118,6 +125,8 @@ export default {
     padding: 2rem;
 
     padding-top: 90px;
+
+    padding-bottom: 60px;
 
   }
 
@@ -129,11 +138,24 @@ export default {
 
     padding-top: 90px;
 
+    padding-bottom: 60px;
+
   }
 
 }
 
-
+.copyright-footer {
+  text-align: center;
+  padding: 40px 0 20px;
+  margin-top: 20px;
+  
+  p {
+    font-size: 13px;
+    color: var(--text-tertiary, #999);
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+}
 
 .background-decoration {
 

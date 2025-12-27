@@ -200,6 +200,8 @@ export default {
         noPlanPrompt: '您目前没有有效的套餐，请购买套餐以使用服务',
         importSubscription: '导入订阅',
         purchasePlan: '购买套餐',
+        startTrial: '立即试用',
+        upgradePlan: '升级套餐',
         resetTraffic: '重置流量',
         activateDataCycleInAdvance: '提前开启流量周期',
         resetDataCycleNotice:'点击「我知道了」将会扣除当前流量周期剩余订阅时长（按月重置时扣除本周期剩余订阅时长，每月1号重置时扣除整月时间30天，年周期同理），系统将会重置您的已使用流量。',

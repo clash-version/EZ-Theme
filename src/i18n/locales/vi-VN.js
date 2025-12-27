@@ -196,6 +196,8 @@ export default {
         noPlanPrompt: 'Bạn hiện tại không có gói cước hợp lệ, vui lòng mua gói cước để sử dụng dịch vụ',
         importSubscription: 'Nhập đăng ký',
         purchasePlan: 'Mua gói cước',
+        startTrial: 'Dùng thử ngay',
+        upgradePlan: 'Nâng cấp gói cước',
         resetTraffic: 'Đặt lại lưu lượng',
         activateDataCycleInAdvance: 'Kích hoạt chu kỳ lưu lượng sớm',
         resetDataCycleNotice:'Nhấn "Tôi hiểu" sẽ trừ thời gian đăng ký còn lại của chu kỳ lưu lượng hiện tại (đặt lại theo tháng sẽ trừ thời gian đăng ký còn lại của chu kỳ này, đặt lại ngày 1 hàng tháng sẽ trừ 30 ngày cả tháng, chu kỳ năm tương tự), hệ thống sẽ đặt lại lưu lượng đã sử dụng của bạn.',

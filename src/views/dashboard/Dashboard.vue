@@ -142,19 +142,44 @@
             </div>
 
             <div class="plan-actions" @click.stop>
-              <button v-if="showImportSubscription" class="action-btn primary" :class="{'btn-active': showImportCard}" @click="toggleImportCard">
+              <!-- 试用套餐：正常使用中 - 显示"立即试用"按钮 -->
+              <button v-if="isTrialPlan && !isTrialInvalid" class="action-btn primary" :class="{'btn-active': showImportCard}" @click="toggleImportCard">
+                <IconShare :size="18"/>
+                <span>{{ $t('dashboard.startTrial') }}</span>
+              </button>
+              
+              <!-- 试用套餐：过期或流量用尽 - 显示"购买套餐"按钮 -->
+              <button v-if="isTrialPlan && isTrialInvalid" class="action-btn danger" @click="goToShop">
+                <IconShoppingCart :size="18"/>
+                <span>{{ $t('dashboard.purchasePlan') }}</span>
+              </button>
+              
+              <!-- 正常套餐/长期套餐：未过期 - 显示"导入订阅"按钮 -->
+              <button v-if="!isTrialPlan && !isExpired && showImportSubscription" class="action-btn primary" :class="{'btn-active': showImportCard}" @click="toggleImportCard">
                 <IconShare :size="18"/>
                 <span>{{ $t('dashboard.importSubscription') }}</span>
               </button>
-              <button v-if="showRenewPlanButton && isExpired" class="action-btn danger" @click="renewPlan">
+              
+              <!-- 正常套餐：已过期 - 显示"续费套餐"按钮 -->
+              <button v-if="isNormalPlan && isExpired" class="action-btn danger" @click="renewPlan">
                 <IconShoppingCart :size="18"/>
                 <span>{{ $t('dashboard.renewPlan') }}</span>
               </button>
-              <button v-if="showResetTrafficButton" class="action-btn" :class="{'warning': isLowTraffic && !isTrafficDepleted, 'danger': isTrafficDepleted}" @click="openResetTrafficModal">
+              
+              <!-- 正常套餐：临近到期（未过期）- 显示"升级套餐"按钮 -->
+              <!-- 正常套餐/长期套餐：流量超过80%（未过期）- 显示"升级套餐"按钮 -->
+              <button v-if="!isTrialPlan && !isExpired && (isExpiringSoon || isTrafficOver80)" class="action-btn" @click="goToShop">
+                <IconTrendingUp :size="18"/>
+                <span>{{ $t('dashboard.upgradePlan') }}</span>
+              </button>
+              
+              <!-- 正常套餐/长期套餐：流量超过80%（未过期）- 显示"重置流量"按钮 -->
+              <button v-if="!isTrialPlan && !isExpired && isTrafficOver80" class="action-btn" :class="{'warning': !isTrafficDepleted, 'danger': isTrafficDepleted}" @click="openResetTrafficModal">
                 <IconRefresh :size="18"/>
                 <span>{{ $t('dashboard.resetTraffic') }}</span>
               </button>
-              <button v-if="allowNewPeriod==='1'&&showResetTrafficButton" class="action-btn" @click="showPopup=true">
+              
+              <button v-if="allowNewPeriod==='1'&&!isTrialPlan && !isExpired && isTrafficOver80" class="action-btn" @click="showPopup=true">
                 <IconCalendarPlus :size="18"/>
               </button>
               <button class="action-btn support-btn" @click="goToSupport" :title="$t('dashboard.ticketSupport')">
@@ -621,6 +646,7 @@ import {
   IconShoppingBag,
   IconShoppingCart,
   IconTransferVertical,
+  IconTrendingUp,
   IconUserPlus,
   IconWallet,
   IconWaveSawTool,
@@ -748,6 +774,7 @@ export default {
     IconPlayerPause,
     IconPlayerPlay,
     IconGift,
+    IconTrendingUp,
     CommonDialog
   },
   setup() {
@@ -811,7 +838,7 @@ export default {
     const hasPlan = ref(true);
     const currentNoticeIndex = ref(0);
     const showNoticeDetails = ref(false);
-    const showImportCard = ref(true);
+    const showImportCard = ref(false);
     const showQrCode = ref(false);
     const {showToast} = useToast();
     const qrCodeUrl = ref('');
@@ -1157,6 +1184,60 @@ export default {
       if (remainingUnit === 'KB' && remainingValue < 0.01) return true;
 
       return false;
+    });
+
+    // 是否为试用套餐 (plan_id === 1)
+    const isTrialPlan = computed(() => {
+      return userPlanId.value === 1;
+    });
+
+    // 是否为长期/永久套餐 (没有过期时间)
+    const isLongTermPlan = computed(() => {
+      return userStats.isRemainingDaysPermanent;
+    });
+
+    // 是否为正常套餐 (非试用、非长期)
+    const isNormalPlan = computed(() => {
+      return !isTrialPlan.value && !isLongTermPlan.value;
+    });
+
+    // 流量使用是否超过80%
+    const isTrafficOver80 = computed(() => {
+      const remainingMatch = userStats.remainingTraffic.match(/(\d+(\.\d+)?)\s*([KMGT]?B)/i);
+
+      if (!userPlan.value || !userPlan.value.totalTraffic || !remainingMatch) return false;
+
+      const totalMatch = userPlan.value.totalTraffic.match(/(\d+(\.\d+)?)\s*([KMGT]?B)/i);
+      if (!totalMatch) return false;
+
+      const remainingValue = parseFloat(remainingMatch[1]);
+      const remainingUnit = remainingMatch[3].toUpperCase();
+
+      const totalValue = parseFloat(totalMatch[1]);
+      const totalUnit = totalMatch[3].toUpperCase();
+
+      const unitToBytes = {
+        'B': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024
+      };
+
+      const remainingBytes = remainingValue * unitToBytes[remainingUnit];
+      const totalBytes = totalValue * unitToBytes[totalUnit];
+
+      if (totalBytes === 0) return false;
+
+      // 剩余流量百分比
+      const remainingPercentage = (remainingBytes / totalBytes) * 100;
+      // 已使用流量超过80%，即剩余流量少于20%
+      return remainingPercentage <= 20;
+    });
+
+    // 试用套餐是否失效（过期或流量用尽）
+    const isTrialInvalid = computed(() => {
+      return isTrialPlan.value && (isExpired.value || isTrafficDepleted.value);
     });
 
     const showResetTrafficButton = computed(() => {
@@ -1942,6 +2023,11 @@ export default {
       isExpired,
       isLowTraffic,
       isTrafficDepleted,
+      isTrialPlan,
+      isTrialInvalid,
+      isNormalPlan,
+      isLongTermPlan,
+      isTrafficOver80,
       hasPlan,
       processedNoticeContent,
       showRenewPlanButton,
@@ -3066,29 +3152,46 @@ export default {
       padding: 20px;
 
       .plan-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        .plan-name-badge {
+          flex: 1;
+          min-width: 0;
+          
+          span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
 
         .plan-status {
-          padding: 8px 16px;
-          font-size: 13px;
-          border-radius: 8px;
-          width: 100%;
+          padding: 4px 10px;
+          font-size: 11px;
+          border-radius: 16px;
+          width: auto;
+          flex-shrink: 0;
           text-align: center;
+          font-weight: 600;
           
           // 正常状态 - 绿色
-          background: rgba(76, 175, 80, 0.1);
-          border: 1px solid #4caf50;
+          background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+          color: #4caf50;
+          border: 1px solid rgba(76, 175, 80, 0.3);
           
           &.expired {
-            background: rgba(244, 67, 54, 0.1);
-            border-color: #f44336;
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(244, 67, 54, 0.05) 100%);
+            color: #f44336;
+            border-color: rgba(244, 67, 54, 0.3);
           }
 
           &.expiring {
-            background: rgba(255, 152, 0, 0.1);
-            border-color: #ff9800;
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.05) 100%);
+            color: #ff9800;
+            border-color: rgba(255, 152, 0, 0.3);
           }
         }
       }

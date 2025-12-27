@@ -198,6 +198,8 @@ export default {
     noPlanPrompt: 'بسته فعالی ندارید، لطفا بسته خریداری کنید',
     importSubscription: 'وارد کردن اشتراک',
     purchasePlan: 'خرید بسته',
+    startTrial: 'شروع آزمایشی',
+    upgradePlan: 'ارتقای بسته',
     resetTraffic: 'بازنشانی ترافیک',
     renewPlan: 'تمدید بسته',
     noPlanToRenew: 'بسته ای برای تمدید وجود ندارد',

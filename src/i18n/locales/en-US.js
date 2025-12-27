@@ -200,6 +200,8 @@ export default {
         noPlanPrompt: 'You currently have no active plan, please purchase a plan to use the service',
         importSubscription: 'Import Subscription',
         purchasePlan: 'Purchase Plan',
+        startTrial: 'Start Trial',
+        upgradePlan: 'Upgrade Plan',
         resetTraffic: 'Reset Traffic',
         activateDataCycleInAdvance: 'Activate data cycle in advance',
         resetDataCycleNotice:'Clicking "Got it" will deduct the remaining subscription time of the current data cycle. The system will reset your used data.',

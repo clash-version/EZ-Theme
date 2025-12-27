@@ -198,6 +198,8 @@ export default {
     noPlanPrompt: 'У вас нет активного плана, купите план для использования сервиса',
     importSubscription: 'Импортировать подписку',
     purchasePlan: 'Купить план',
+    startTrial: 'Начать пробный период',
+    upgradePlan: 'Улучшить план',
     resetTraffic: 'Сбросить трафик',
     renewPlan: 'Продлить план',
     noPlanToRenew: 'Нет плана для продления',

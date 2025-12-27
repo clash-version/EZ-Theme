@@ -198,6 +198,8 @@ export default {
     noPlanPrompt: '현재 유효한 플랜이 없습니다. 플랜을 구매하여 서비스를 이용하세요',
     importSubscription: '구독 가져오기',
     purchasePlan: '플랜 구매',
+    startTrial: '지금 체험',
+    upgradePlan: '플랜 업그레이드',
     resetTraffic: '트래픽 초기화',
     renewPlan: '플랜 갱신',
     noPlanToRenew: '갱신 가능한 플랜 없음',

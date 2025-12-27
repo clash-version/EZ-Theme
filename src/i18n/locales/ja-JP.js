@@ -198,6 +198,8 @@ export default {
     noPlanPrompt: '有効なプランがありません。プランを購入してください',
     importSubscription: 'サブスクリプションインポート',
     purchasePlan: 'プラン購入',
+    startTrial: '今すぐ試用',
+    upgradePlan: 'プランアップグレード',
     resetTraffic: '流量リセット',
     renewPlan: 'プラン更新',
     noPlanToRenew: '更新可能なプランがありません',

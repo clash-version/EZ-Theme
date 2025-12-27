@@ -198,6 +198,8 @@ export default {
     noPlanPrompt: '您目前沒有有效的套餐，請購買套餐以使用服務',
     importSubscription: '匯入訂閱',
     purchasePlan: '購買套餐',
+    startTrial: '立即試用',
+    upgradePlan: '升級套餐',
     resetTraffic: '重設流量',
     renewPlan: '續費套餐',
     noPlanToRenew: '無可續費的套餐',

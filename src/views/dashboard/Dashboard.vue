@@ -15,7 +15,7 @@
           </div>
           
           <!-- 快捷统计数据 - 嵌入英雄区 -->
-          <div class="hero-stats" v-if="hasPlan && !loading.userStats">
+          <div class="hero-stats" v-if="!loading.subscribe && hasPlan">
             <div class="hero-stat-item clickable" :class="{'stat-warning': isLowTraffic && !isTrafficDepleted, 'stat-danger': isTrafficDepleted}" @click="router.push('/trafficlog')">
               <div class="stat-circle">
                 <svg viewBox="0 0 36 36" class="circular-chart">
@@ -97,7 +97,7 @@
         <div class="left-column">
           
           <!-- 待处理事项 - 紧凑横条 -->
-          <div v-if="hasPendingItems" class="pending-bar" :class="{'card-animate': !loading.userStats}">
+          <div v-if="!loading.userStats && hasPendingItems" class="pending-bar" :class="{'card-animate': !loading.userStats}">
             <div v-if="userStats.pendingOrders > 0" class="pending-tag" @click="router.push('/orders')">
               <IconShoppingCart :size="16"/>
               <span>{{ userStats.pendingOrders }} {{ $t('dashboard.pendingOrders') }}</span>
@@ -110,8 +110,30 @@
             </div>
           </div>
 
+          <!-- 套餐卡片加载骨架屏 -->
+          <div v-if="loading.subscribe" class="plan-card skeleton-card">
+            <div class="plan-header">
+              <div class="skeleton-line" style="width: 120px; height: 24px;"></div>
+              <div class="skeleton-line" style="width: 60px; height: 24px; border-radius: 20px;"></div>
+            </div>
+            <div class="plan-details">
+              <div class="detail-row">
+                <div class="skeleton-line" style="width: 80px; height: 16px;"></div>
+                <div class="skeleton-line" style="width: 100px; height: 16px;"></div>
+              </div>
+              <div class="detail-row">
+                <div class="skeleton-line" style="width: 80px; height: 16px;"></div>
+                <div class="skeleton-line" style="width: 100px; height: 16px;"></div>
+              </div>
+            </div>
+            <div class="plan-actions">
+              <div class="skeleton-line" style="width: 100px; height: 36px; border-radius: 8px;"></div>
+              <div class="skeleton-line" style="width: 100px; height: 36px; border-radius: 8px;"></div>
+            </div>
+          </div>
+
           <!-- 套餐信息卡片 - 重新设计 -->
-          <div v-if="hasPlan" class="plan-card clickable" :class="{'card-animate': !loading.userInfo}" @click="toggleImportCard">
+          <div v-if="!loading.subscribe && hasPlan" class="plan-card clickable" :class="{'card-animate': !loading.userInfo}" @click="toggleImportCard">
             <div class="plan-header">
               <div class="plan-name-badge">
                 <IconBox :size="20"/>
@@ -194,7 +216,7 @@
           </div>
 
           <!-- 无套餐提示 -->
-          <div v-else-if="!loading.userInfo" class="no-plan-card" :class="{'card-animate': !loading.userStats}">
+          <div v-else-if="!loading.subscribe && hasPlan === false" class="no-plan-card" :class="{'card-animate': !loading.userStats}">
             <div class="no-plan-visual">
               <div class="pulse-ring"></div>
               <div class="pulse-ring delay-1"></div>
@@ -835,7 +857,7 @@ export default {
     });
     const userBalance = ref('0.00');
     const currencySymbol = ref('$');
-    const hasPlan = ref(true);
+    const hasPlan = ref(null); // null=未知状态，true=有套餐，false=无套餐
     const currentNoticeIndex = ref(0);
     const showNoticeDetails = ref(false);
     const showImportCard = ref(false);
@@ -1021,7 +1043,8 @@ export default {
     };
 
     const fetchUserInfo = async () => {
-      if (loading.userInfo === false && Object.keys(userPlan.value).length > 0) return;
+      // 如果已经获取过且有数据，跳过
+      if (loading.userInfo === false && userStats.userEmail) return;
 
       loading.userInfo = true;
       try {
@@ -1040,28 +1063,8 @@ export default {
             userBalance.value = info.balance;
             updateAccountBalanceDisplay();
           }
-          if (info.expired_at) {
-            userPlan.value.expireDate = formatDate(info.expired_at);
-            userPlan.value.isExpireDatePermanent = false;
-
-            const now = new Date();
-            const expiredDate = new Date(info.expired_at * 1000);
-            const diffTime = expiredDate - now;
-
-            if (diffTime <= 0) {
-              userStats.remainingDays = '0';
-              userStats.isRemainingDaysPermanent = false;
-            } else {
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              userStats.remainingDays = `${diffDays}`;
-              userStats.isRemainingDaysPermanent = false;
-            }
-          } else {
-            userPlan.value.expireDate = null;
-            userPlan.value.isExpireDatePermanent = true;
-            userStats.remainingDays = null;
-            userStats.isRemainingDaysPermanent = true;
-          }
+          // 注意: expireDate 和 remainingDays 由 fetchSubscribe 统一处理
+          // 避免重复更新导致的二次渲染
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
@@ -1288,6 +1291,10 @@ export default {
         allowNewPeriod.value = response.data.allow_new_period;
         if (response.data) {
           const subscribe = response.data;
+          
+          // 根据订阅数据判断是否有套餐
+          hasPlan.value = !!(subscribe.plan && subscribe.plan.id);
+          
           if (subscribe.plan && subscribe.plan.name) {
             userPlan.value.name = subscribe.plan.name;
           }
@@ -1358,6 +1365,10 @@ export default {
         }
       } catch (error) {
         console.error('获取订阅信息失败:', error);
+        // 获取失败时设置为无套餐
+        if (hasPlan.value === null) {
+          hasPlan.value = false;
+        }
       } finally {
         loading.subscribe = false;
       }
@@ -1749,14 +1760,17 @@ export default {
     onMounted(async () => {
       await fetchUserConfig();
 
-      fetchUserInfo();
+      // 优先获取订阅信息（包含套餐详情、到期时间、流量等核心数据）
+      // fetchUserInfo 只获取基础信息（邮箱、余额、plan_id）
+      // 并行获取，但 fetchSubscribe 是主要数据源
+      await Promise.all([
+        fetchUserInfo(),
+        fetchSubscribe()
+      ]);
 
-      fetchSubscribe();
-
+      // 其他数据可以并行获取
       fetchNotices();
-
       fetchUserStats();
-
       fetchCommissionBalance();
 
       updateQRCodeUrl();
@@ -1885,9 +1899,9 @@ export default {
     };
 
     onActivated(() => {
-      console.log('Dashboard组件被激活');
       if (needRefreshData.value) {
         fetchUserInfo();
+        fetchSubscribe();
         fetchUserStats();
         fetchNotices();
         needRefreshData.value = false;
@@ -1897,7 +1911,6 @@ export default {
     });
 
     onDeactivated(() => {
-      console.log('Dashboard组件被停用');
       needRefreshData.value = true;
 
       cleanupResources(timers, listeners);
@@ -4864,6 +4877,16 @@ export default {
     animation: shimmer 2s infinite;
     z-index: 1;
   }
+}
+
+.skeleton-line {
+  background-color: var(--skeleton-bg, rgba(0, 0, 0, 0.08));
+  border-radius: 4px;
+  position: relative;
+}
+
+.dark-theme .skeleton-line {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 

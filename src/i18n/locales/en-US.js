@@ -892,5 +892,27 @@ export default {
             title: 'Account Deposit',
             description: 'Here you can easily deposit funds into your account, choose preset amounts or enter a custom amount. Deposited balance will be credited instantly and can be used to purchase our services.'
         }
+    },
+    invoice: {
+        download_invoice: 'Download Invoice',
+        download_success: 'Invoice downloaded successfully',
+        download_failed: 'Failed to download invoice',
+        bill_to: 'BILL TO',
+        invoice_details: 'INVOICE DETAILS',
+        invoice_no: 'Invoice No:',
+        invoice_date: 'Date:',
+        status: 'Status:',
+        description: 'DESCRIPTION',
+        period: 'PERIOD',
+        qty: 'QTY',
+        amount: 'AMOUNT',
+        subtotal: 'Subtotal:',
+        discount: 'Discount:',
+        balance_used: 'Balance Used:',
+        handling_fee: 'Handling Fee:',
+        total: 'TOTAL:',
+        paid_notice: 'PAID',
+        payment_method: 'Payment Method',
+        footer_text: 'Thank you for your business!'
     }
 };

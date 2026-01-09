@@ -892,5 +892,27 @@ export default {
             title: '账户充值',
             description: '在这里您可以轻松地为您的账户充值，选择预设金额或输入自定义金额进行充值。充值后的余额将立即到账并可用于购买我们的服务。'
         }
+    },
+    invoice: {
+        download_invoice: '下载账单',
+        download_success: '账单下载成功',
+        download_failed: '账单下载失败',
+        bill_to: '账单抬头',
+        invoice_details: '账单详情',
+        invoice_no: '账单编号',
+        invoice_date: '账单日期',
+        status: '状态',
+        description: '商品描述',
+        period: '周期',
+        qty: '数量',
+        amount: '金额',
+        subtotal: '小计',
+        discount: '优惠',
+        balance_used: '余额抵扣',
+        handling_fee: '手续费',
+        total: '合计',
+        paid_notice: '已支付',
+        payment_method: '支付方式',
+        footer_text: '感谢您的支持！'
     }
 }; 

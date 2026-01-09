@@ -398,6 +398,32 @@
 
           <div class="action-buttons">
 
+            <!-- 下载发票按钮 - 订单已完成时显示 -->
+
+            <div class="btn-group invoice-row" v-if="!loading.order && (orderDetail.status === 3 || orderDetail.status === 4)">
+
+              <button 
+
+                class="btn-invoice secondary-action full-width" 
+
+                @click="downloadInvoice"
+
+                :disabled="loading.downloadingInvoice"
+
+              >
+
+                <IconFileInvoice v-if="!loading.downloadingInvoice" :size="18" />
+
+                <div v-else class="loader"></div>
+
+                <span>{{ $t('invoice.download_invoice') }}</span>
+
+              </button>
+
+            </div>
+
+            
+
             <!-- 从订单列表进入且订单已完成 - 显示返回上一页按钮 -->
 
             <div class="btn-group pay-row" v-if="fromOrderList && (paymentSuccessful || orderDetail.status !== 0)">
@@ -816,9 +842,13 @@ import { useToast } from '@/composables/useToast';
 
 import { useRoute, useRouter } from 'vue-router';
 
+import { useStore } from 'vuex';
+
 import { getOrderDetail, getPaymentMethods, checkOrderStatus, cancelOrder, checkoutOrder } from '@/api/shop';
 
 import { PAYMENT_CONFIG } from '@/utils/baseConfig';
+
+import { generateInvoicePDF } from '@/utils/invoiceGenerator';
 
 import QrcodeVue from 'qrcode.vue';
 
@@ -851,6 +881,8 @@ import {
   IconClock,
 
   IconLoader2,
+
+  IconFileInvoice,
 
   IconHelp
 
@@ -898,7 +930,9 @@ export default {
 
     IconLoader2,
 
-    IconHelp
+    IconHelp,
+
+    IconFileInvoice
 
   },
 
@@ -911,6 +945,8 @@ export default {
     const route = useRoute();
 
     const router = useRouter();
+
+    const store = useStore();
 
     
 
@@ -925,6 +961,8 @@ export default {
       methods: true,
 
       checking: false,
+
+      downloadingInvoice: false,
 
       cancelling: false,
 
@@ -2166,9 +2204,45 @@ export default {
 
     
 
+    // 下载发票功能
+
+    const downloadInvoice = async () => {
+
+      try {
+
+        loading.downloadingInvoice = true;
+
+        const userInfo = store.getters.userInfo;
+
+        // 使用 printInvoice 函数（虽然变量名保留downloadInvoice，但底层实现已改为浏览器打印）
+
+        await generateInvoicePDF(orderDetail.value, userInfo, t);
+
+        // 如果是打印模式，不需要提示“下载成功”，因为是用户交互
+
+        // showToast(t('invoice.download_success'), 'success'); 
+
+      } catch (error) {
+
+        console.error('生成发票失败:', error);
+
+        showToast(t('invoice.download_failed'), 'error');
+
+      } finally {
+
+        loading.downloadingInvoice = false;
+
+      }
+
+    };
+
+    
+
     return {
 
       loading,
+
+      downloadInvoice,
 
       orderDetail,
 
@@ -3043,6 +3117,62 @@ export default {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
       }
+
+    }
+
+    
+
+    .btn-invoice {
+
+      background-color: transparent;
+
+      color: var(--theme-color);
+
+      flex: 1;
+
+      border: 1px solid var(--theme-color);
+
+      box-shadow: 0 2px 5px rgba(var(--theme-color-rgb), 0.1);
+
+      
+
+      &:hover:not(:disabled) {
+
+        background-color: rgba(var(--theme-color-rgb), 0.08);
+
+        transform: translateY(-2px);
+
+        box-shadow: 0 4px 8px rgba(var(--theme-color-rgb), 0.15);
+
+      }
+
+      
+
+      &:active:not(:disabled) {
+
+        transform: translateY(0);
+
+        box-shadow: 0 2px 3px rgba(var(--theme-color-rgb), 0.1);
+
+      }
+
+      
+
+      &.full-width {
+
+        max-width: 100%;
+
+        justify-content: center;
+
+      }
+
+    }
+
+    
+
+    .invoice-row {
+
+      margin-bottom: 10px;
 
     }
 

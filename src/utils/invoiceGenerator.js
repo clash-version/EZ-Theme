@@ -4,6 +4,7 @@
  */
 
 import { config } from '@/config/index.js';
+import { getUserInfo } from '@/api/user.js';
 
 /**
  * 格式化金额
@@ -63,15 +64,46 @@ const getStatusText = (status, t) => {
 /**
  * 调用浏览器打印 Invoice (支持中文，无乱码)
  * @param {Object} orderDetail - 订单详情
- * @param {Object} userInfo - 用户信息
+ * @param {Object} userInfo - 用户信息 (可选，如果为空会自动调用接口获取)
  * @param {function} t - i18n翻译函数
  */
 export const printInvoice = async (orderDetail, userInfo, t) => {
     const siteName = config.SITE_CONFIG?.siteName || 'EZ-Theme';
     const primaryColor = '#000000'; // 强制黑白，或者使用简单的深灰色 '#333'
     
-    // 准备数据
-    const userEmail = userInfo?.email || '-';
+    // 准备数据 - 增强用户邮箱获取逻辑
+    let userEmail = '-';
+    
+    // 1. 首先尝试从传入的 userInfo 获取
+    if (userInfo?.email) {
+        userEmail = userInfo.email;
+    } 
+    // 2. 尝试从 localStorage 获取
+    if (userEmail === '-') {
+        try {
+            const storedUserInfo = localStorage.getItem('userInfo');
+            if (storedUserInfo) {
+                const parsed = JSON.parse(storedUserInfo);
+                if (parsed?.email) {
+                    userEmail = parsed.email;
+                }
+            }
+        } catch (e) {
+            console.warn('从 localStorage 获取用户邮箱失败:', e);
+        }
+    }
+    // 3. 如果还是没有，调用 API 接口获取
+    if (userEmail === '-') {
+        try {
+            const response = await getUserInfo();
+            if (response?.data?.email) {
+                userEmail = response.data.email;
+            }
+        } catch (e) {
+            console.warn('调用 API 获取用户邮箱失败:', e);
+        }
+    }
+    
     const tradeNo = orderDetail.trade_no || '-';
     const invoiceDate = orderDetail.paid_at ? formatDate(orderDetail.paid_at) : formatDate(orderDetail.created_at);
     const statusText = getStatusText(orderDetail.status, t);
@@ -94,14 +126,20 @@ export const printInvoice = async (orderDetail, userInfo, t) => {
     const orderAmount = orderDetail.total_amount || 0;
     
     // 获取套餐原价（小计）
-    // 优先从套餐价格中获取，如果是充值订单则使用 total_amount + 优惠 + 余额
+    // 如果没有任何优惠和余额抵扣，小计直接等于订单金额，避免浮点精度差异
     let originalPrice = 0;
-    if (orderDetail.plan && orderDetail.period && orderDetail.plan[orderDetail.period]) {
-        // 从套餐价格获取原价
-        originalPrice = Math.round(orderDetail.plan[orderDetail.period]);
+    if (discountAmount > 0 || balanceAmount > 0) {
+        // 有优惠或余额抵扣时，需要计算原价
+        if (orderDetail.plan && orderDetail.period && orderDetail.plan[orderDetail.period]) {
+            // 从套餐价格获取原价
+            originalPrice = Math.round(orderDetail.plan[orderDetail.period]);
+        } else {
+            // 充值或其他情况，反推原价
+            originalPrice = orderAmount + discountAmount + balanceAmount;
+        }
     } else {
-        // 充值或其他情况，反推原价
-        originalPrice = orderAmount + discountAmount + balanceAmount;
+        // 没有优惠和余额抵扣时，小计 = 订单金额，保持账目一致
+        originalPrice = orderAmount;
     }
     
     // 最终支付总额 = 订单金额 + 手续费

@@ -112,7 +112,7 @@
 
       <!-- 筛选选项卡 - 设计成圆形切换按钮 -->
 
-      <div class="filter-toggle-container">
+      <!-- <div class="filter-toggle-container">
 
         <div class="filter-toggle-wrapper">
 
@@ -144,7 +144,7 @@
 
         </div>
 
-      </div>
+      </div> -->
 
       
 
@@ -1234,9 +1234,33 @@ export default {
 
       
 
-      // 如果不是纯一次性套餐，或者没有流量信息，则不显示提醒
+      // 检查是否为特定套餐名称 "· 年包 · 流量版"
+      // 使用更宽松的匹配条件，只要包含关键词即可
+      const isYearlyTrafficPlan = plan.name && (
+        plan.name.includes('年包') && plan.name.includes('流量版')
+      );
 
-      if (hasRecurring || !plan.onetime_price || !plan.transfer_enable) {
+      
+
+      // 一次性套餐逻辑：纯一次性套餐且有流量信息
+
+      const isOnetimePlan = !hasRecurring && plan.onetime_price && plan.transfer_enable;
+
+      
+
+      // 如果不是一次性套餐且不是年包流量版，则不显示提醒
+
+      if (!isOnetimePlan && !isYearlyTrafficPlan) {
+
+        return { showReminder: false, pricePerGB: 0 };
+
+      }
+
+      
+
+      // 如果没有流量信息，则不显示提醒
+
+      if (!plan.transfer_enable) {
 
         return { showReminder: false, pricePerGB: 0 };
 
@@ -1246,7 +1270,25 @@ export default {
 
       // 计算每GB价格
 
-      const price = plan.onetime_price / 100; // 转换为元
+      // 对于一次性套餐使用 onetime_price，对于年包流量版使用 year_price
+
+      let price;
+
+      if (isOnetimePlan && plan.onetime_price) {
+
+        price = plan.onetime_price / 100; // 转换为元
+
+      } else if (isYearlyTrafficPlan && plan.year_price) {
+
+        price = plan.year_price / 100; // 转换为元
+
+      } else {
+
+        return { showReminder: false, pricePerGB: 0 };
+
+      }
+
+      
 
       const trafficGB = plan.transfer_enable; // 转换为GB
 

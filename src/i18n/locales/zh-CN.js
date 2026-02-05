@@ -546,7 +546,7 @@ export default {
                 savings: '为您节省'
             },
             onetime: {
-                reminder: '流量不过期，用完为止，仅',
+                reminder: '一年有效，仅',
                 price_label: ''
             }
         },

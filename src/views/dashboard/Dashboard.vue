@@ -182,8 +182,8 @@
                 <span>{{ $t('dashboard.importSubscription') }}</span>
               </button>
               
-              <!-- 正常套餐：已过期 - 显示"续费套餐"按钮 -->
-              <button v-if="isNormalPlan && isExpired" class="action-btn danger" @click="renewPlan">
+              <!-- 正常套餐：已过期或即将到期 - 显示"续费套餐"按钮 -->
+              <button v-if="isNormalPlan && (isExpired || isExpiringSoon)" class="action-btn danger" @click="renewPlan">
                 <IconShoppingCart :size="18"/>
                 <span>{{ $t('dashboard.renewPlan') }}</span>
               </button>

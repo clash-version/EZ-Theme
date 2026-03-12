@@ -29,7 +29,7 @@ export const config  = {
         // 支持字符串形式(单个API地址)或数组形式(多个备选API地址)
         // 多个地址时，会按顺序检测可用性，并使用第一个可用的地址
         staticBaseUrl: [
-            'https://adm.polarislnk.com//api/v1',
+            'https://adm.polarislnk.com/api/v1',
         ],
       
         // 自动获取模式配置 (urlMode = 'auto'时使用)
@@ -50,7 +50,7 @@ export const config  = {
     API_MIDDLEWARE_ENABLED: true,
 
     // 中间件服务器URL (不含路径)
-    API_MIDDLEWARE_URL: 'https://user.polarisnet-01.com',
+    API_MIDDLEWARE_URL: 'https://user.polarisnet.cloud',
 
     // 中间件路由前缀 (与中间件服务器配置保持一致)
     API_MIDDLEWARE_PATH: '/billing',
@@ -117,13 +117,13 @@ export const config  = {
         // 认证页面弹窗公告配置
         popup: {
             // 是否启用弹窗
-            enabled: false,
+            enabled: true,
 
             // 弹窗标题
-            title: "如果您注册、登入或使用遇到问题",
+            title: "系统公告",
 
             // 弹窗内容 (支持HTML)
-            content: "<p>请点击<strong>左下角绿色气泡</strong>，客服7x18小时在线为您解决</p>",
+            content: "<p>由于系统迁移导致数据丢失，受影响范围3月11日 02:00:00 至 3月12日 12:00:00，期间注册、续费的用户账号会出现异常，请您提供一下注册账号、购买套餐、支付订单号。点击<strong>下方聊天泡泡</strong>联系客服</p>",
 
             // 冷却时间（小时），在此时间内不会再次显示弹窗
             cooldownHours: 144,

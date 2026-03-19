@@ -117,7 +117,7 @@ export const config  = {
         // 认证页面弹窗公告配置
         popup: {
             // 是否启用弹窗
-            enabled: true,
+            enabled: false,
 
             // 弹窗标题
             title: "系统公告",

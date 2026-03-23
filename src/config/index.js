@@ -446,7 +446,7 @@ export const config  = {
             // 链接模式：'auto'=自动使用当前站点域名，'custom'=使用自定义域名
             linkMode: 'custom',
             // 自定义域名，当linkMode为'custom'时使用
-            customDomain: 'https://polarisnet-01.com',
+            customDomain: 'https://t.polarisnet.cloud',
         }
     },
 
